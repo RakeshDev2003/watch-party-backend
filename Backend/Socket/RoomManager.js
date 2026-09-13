@@ -36,7 +36,7 @@ class Room {
     const isFirst = this.participants.size === 0 || !hasHost;
     const role = isFirst ? "Host" : "Participant";
 
-    const participant = new Participant(socketId, userId || socket.id, username, role);
+    const participant = new Participant(socketId, userId || socketId, username, role);
     this.participants.set(socketId, participant);
 
     if (isFirst) {
