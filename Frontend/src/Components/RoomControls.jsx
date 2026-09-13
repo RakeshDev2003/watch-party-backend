@@ -3,6 +3,11 @@ import {
   Play,
   Pause,
   RotateCcw,
+  FastForward,
+  SkipBack,
+  SkipForward,
+  Maximize,
+  Minimize,
   Film,
   Lock,
   Sparkles,
@@ -15,10 +20,16 @@ import { formatDuration, extractYouTubeId, PRESET_VIDEOS } from "../utils/youtub
 const REACTION_EMOJIS = ["❤️", "🔥", "👏", "😂", "🍿", "🎉"];
 
 export default function RoomControls({
+  videoId,
   isPlaying,
   currentTime,
   duration,
   canControl,
+  isFullscreen = false,
+  onToggleFullscreen,
+  onSkipBackward,
+  onSkipForward,
+  onSkipNextVideo,
   onPlay,
   onPause,
   onSeek,
@@ -63,17 +74,17 @@ export default function RoomControls({
   const progressPercent = duration > 0 ? (currentTime / duration) * 100 : 0;
 
   return (
-    <div className="glass-panel" style={{ padding: "16px 20px", marginTop: "16px" }}>
+    <div className="glass-panel room-controls-card">
       {/* 1. Direct YouTube Link Input Bar (Always accessible for Host/Mod) */}
       {canControl && (
         <div style={{ marginBottom: "16px" }}>
           <form onSubmit={handleDirectVideoSubmit}>
-            <div style={{ display: "flex", gap: "8px", alignItems: "center" }}>
-              <div style={{ position: "relative", flex: 1 }}>
+            <div className="controls-input-row">
+              <div className="controls-url-wrapper">
                 <input
                   type="text"
                   className="input-control"
-                  placeholder="Paste any YouTube URL or Video ID here (e.g. https://www.youtube.com/watch?v=...)"
+                  placeholder="Paste YouTube URL or Video ID (e.g. https://www.youtube.com/watch?v=...)"
                   value={videoUrlInput}
                   onChange={(e) => {
                     setVideoUrlInput(e.target.value);
@@ -99,33 +110,35 @@ export default function RoomControls({
                 />
               </div>
 
-              <button
-                type="submit"
-                className="btn btn-primary"
-                style={{
-                  padding: "10px 18px",
-                  fontSize: "13px",
-                  whiteSpace: "nowrap",
-                }}
-              >
-                <span>Load Video</span>
-                <ArrowRight size={14} />
-              </button>
+              <div className="controls-action-btns">
+                <button
+                  type="submit"
+                  className="btn btn-primary"
+                  style={{
+                    padding: "10px 18px",
+                    fontSize: "13px",
+                    whiteSpace: "nowrap",
+                  }}
+                >
+                  <span>Load Video</span>
+                  <ArrowRight size={14} />
+                </button>
 
-              <button
-                type="button"
-                onClick={() => setShowPresets(!showPresets)}
-                className="btn btn-secondary"
-                style={{
-                  padding: "10px 14px",
-                  fontSize: "13px",
-                  whiteSpace: "nowrap",
-                }}
-                title="Browse quick video presets"
-              >
-                <Sparkles size={14} color="#fbbf24" />
-                <span>Presets</span>
-              </button>
+                <button
+                  type="button"
+                  onClick={() => setShowPresets(!showPresets)}
+                  className="btn btn-secondary"
+                  style={{
+                    padding: "10px 14px",
+                    fontSize: "13px",
+                    whiteSpace: "nowrap",
+                  }}
+                  title="Browse quick video presets"
+                >
+                  <Sparkles size={14} color="#fbbf24" />
+                  <span>Presets</span>
+                </button>
+              </div>
             </div>
           </form>
 
@@ -218,114 +231,116 @@ export default function RoomControls({
         </span>
       </div>
 
-      {/* 3. Playback & Emoji Bar */}
-      <div
-        style={{
-          display: "flex",
-          alignItems: "center",
-          justifyContent: "space-between",
-          flexWrap: "wrap",
-          gap: "12px",
-        }}
-      >
-        {/* Left: Play/Pause/Restart Controls */}
-        <div style={{ display: "flex", alignItems: "center", gap: "10px" }}>
-          {canControl ? (
-            <>
-              {isPlaying ? (
+      {/* 3. Playback Controls & Emoji Bar */}
+      <div className="playback-bar-container">
+        {/* Main Controls Row */}
+        <div className="playback-main-row">
+          {/* Primary Controls: Skip Back, Play/Pause, Skip Forward, Restart */}
+          <div className="playback-primary-group">
+            {canControl ? (
+              <>
+                {/* Skip Back 10s */}
                 <button
-                  onClick={onPause}
-                  className="btn btn-secondary"
-                  style={{
-                    padding: "8px 16px",
-                    borderRadius: "var(--radius-full)",
-                    background: "rgba(239, 68, 68, 0.15)",
-                    borderColor: "rgba(239, 68, 68, 0.3)",
-                    color: "#fca5a5",
-                  }}
-                  title="Pause video for everyone"
+                  type="button"
+                  onClick={() => onSkipBackward && onSkipBackward(10)}
+                  className="btn btn-secondary control-btn control-skip-btn"
+                  title="Skip back 10 seconds (-10s)"
                 >
-                  <Pause size={16} fill="#fca5a5" />
-                  <span>Pause</span>
+                  <RotateCcw size={14} />
+                  <span>-10s</span>
                 </button>
-              ) : (
-                <button
-                  onClick={onPlay}
-                  className="btn btn-primary"
-                  style={{
-                    padding: "8px 18px",
-                    borderRadius: "var(--radius-full)",
-                  }}
-                  title="Play video for everyone"
-                >
-                  <Play size={16} fill="#ffffff" />
-                  <span>Play</span>
-                </button>
-              )}
 
+                {/* Play / Pause Toggle */}
+                {isPlaying ? (
+                  <button
+                    onClick={onPause}
+                    className="btn btn-secondary control-btn control-play-btn is-playing"
+                    title="Pause video for everyone"
+                  >
+                    <Pause size={16} fill="#fca5a5" />
+                    <span>Pause</span>
+                  </button>
+                ) : (
+                  <button
+                    onClick={onPlay}
+                    className="btn btn-primary control-btn control-play-btn"
+                    title="Play video for everyone"
+                  >
+                    <Play size={16} fill="#ffffff" />
+                    <span>Play</span>
+                  </button>
+                )}
+
+                {/* Skip Forward 10s */}
+                <button
+                  type="button"
+                  onClick={() => onSkipForward && onSkipForward(10)}
+                  className="btn btn-secondary control-btn control-skip-btn"
+                  title="Skip forward 10 seconds (+10s)"
+                >
+                  <FastForward size={14} />
+                  <span>+10s</span>
+                </button>
+
+                {/* Restart */}
+                <button
+                  onClick={() => onSeek(0)}
+                  className="btn-icon control-restart-btn"
+                  title="Restart from beginning (0:00)"
+                >
+                  <RotateCcw size={14} />
+                </button>
+              </>
+            ) : (
+              <div className="playback-locked-badge">
+                <Lock size={13} color="#94a3b8" />
+                <span>Playback controlled by Host / Moderator</span>
+              </div>
+            )}
+          </div>
+
+          {/* Secondary Actions: Next Video & Full Screen */}
+          <div className="playback-secondary-group">
+            {canControl && onSkipNextVideo && (
               <button
-                onClick={() => onSeek(0)}
-                className="btn-icon"
-                title="Restart from beginning"
+                type="button"
+                onClick={onSkipNextVideo}
+                className="btn btn-secondary control-btn control-next-btn"
+                title="Skip to next playlist track"
               >
-                <RotateCcw size={15} />
+                <SkipForward size={14} />
+                <span>Next Video</span>
               </button>
-            </>
-          ) : (
-            <div
-              style={{
-                display: "flex",
-                alignItems: "center",
-                gap: "8px",
-                padding: "6px 14px",
-                background: "rgba(255, 255, 255, 0.04)",
-                borderRadius: "var(--radius-full)",
-                border: "1px solid var(--border-color)",
-                fontSize: "12px",
-                color: "var(--text-muted)",
-              }}
+            )}
+
+            {/* Fullscreen Button */}
+            <button
+              type="button"
+              onClick={onToggleFullscreen}
+              className={`btn btn-secondary control-btn control-fullscreen-btn ${isFullscreen ? "is-fullscreen" : ""}`}
+              title={isFullscreen ? "Exit Full Screen" : "Enter Full Screen"}
             >
-              <Lock size={13} color="#94a3b8" />
-              <span>Playback controlled by Host / Moderator</span>
-            </div>
-          )}
+              {isFullscreen ? <Minimize size={14} /> : <Maximize size={14} />}
+              <span>{isFullscreen ? "Exit Screen" : "Full Screen"}</span>
+            </button>
+          </div>
         </div>
 
-        {/* Right: Quick Emoji Reaction Bar */}
-        <div style={{ display: "flex", alignItems: "center", gap: "6px" }}>
-          <span style={{ fontSize: "11px", color: "var(--text-dim)", marginRight: "4px" }}>
-            React:
-          </span>
-          {REACTION_EMOJIS.map((emoji) => (
-            <button
-              key={emoji}
-              onClick={() => onSendReaction && onSendReaction(emoji)}
-              style={{
-                background: "rgba(255, 255, 255, 0.05)",
-                border: "1px solid var(--border-color)",
-                borderRadius: "var(--radius-full)",
-                width: "32px",
-                height: "32px",
-                fontSize: "16px",
-                cursor: "pointer",
-                display: "flex",
-                alignItems: "center",
-                justifyContent: "center",
-                transition: "transform 0.15s ease, background 0.15s ease",
-              }}
-              onMouseEnter={(e) => {
-                e.currentTarget.style.transform = "scale(1.2)";
-                e.currentTarget.style.background = "rgba(139, 92, 246, 0.2)";
-              }}
-              onMouseLeave={(e) => {
-                e.currentTarget.style.transform = "scale(1)";
-                e.currentTarget.style.background = "rgba(255, 255, 255, 0.05)";
-              }}
-              title={`Send ${emoji} reaction`}
-            >
-              {emoji}
-            </button>
-          ))}
+        {/* Dedicated Reactions Row */}
+        <div className="playback-reactions-row">
+          <span className="reactions-label">React:</span>
+          <div className="reactions-emojis-list">
+            {REACTION_EMOJIS.map((emoji) => (
+              <button
+                key={emoji}
+                onClick={() => onSendReaction && onSendReaction(emoji)}
+                className="emoji-reaction-btn"
+                title={`Send ${emoji} reaction`}
+              >
+                {emoji}
+              </button>
+            ))}
+          </div>
         </div>
       </div>
     </div>

@@ -6,7 +6,7 @@ import ParticipantList from "../Components/ParticipantList";
 import ChatBox from "../Components/ChatBox";
 import socketService, { BACKEND_URL } from "../services/socket";
 import { MessageSquare, Users, AlertCircle, Sparkles, UserX, Home as HomeIcon, Crown } from "lucide-react";
-import { DEFAULT_VIDEO_ID } from "../utils/youtube";
+import { DEFAULT_VIDEO_ID, PRESET_VIDEOS } from "../utils/youtube";
 
 export default function WatchRoom({
   roomId,
@@ -24,6 +24,9 @@ export default function WatchRoom({
   const [duration, setDuration] = useState(0);
   const [participants, setParticipants] = useState([]);
   const [hostId, setHostId] = useState(null);
+
+  // Fullscreen State
+  const [isFullscreen, setIsFullscreen] = useState(false);
 
   // Chat & Reactions
   const [chatMessages, setChatMessages] = useState([]);
@@ -271,6 +274,50 @@ export default function WatchRoom({
     socketService.sendSeek(roomId, time);
   };
 
+  const handleSkipBackwardAction = (seconds = 10) => {
+    const newTime = Math.max(0, currentTime - seconds);
+    handleSeekAction(newTime);
+    showToast(`⏪ Rewound ${seconds}s`);
+  };
+
+  const handleSkipForwardAction = (seconds = 10) => {
+    const newTime = Math.min(duration || Infinity, currentTime + seconds);
+    handleSeekAction(newTime);
+    showToast(`⏩ Skipped +${seconds}s`);
+  };
+
+  const handleSkipNextVideoAction = () => {
+    const currentIndex = PRESET_VIDEOS.findIndex((p) => p.id === videoId);
+    const nextIndex = (currentIndex + 1) % PRESET_VIDEOS.length;
+    const nextVideo = PRESET_VIDEOS[nextIndex];
+    handleChangeVideoAction(nextVideo.id);
+    showToast(`⏭️ Switched to: ${nextVideo.title}`);
+  };
+
+  // Fullscreen sync listener
+  useEffect(() => {
+    const handleFullscreenChange = () => {
+      setIsFullscreen(Boolean(document.fullscreenElement));
+    };
+    document.addEventListener("fullscreenchange", handleFullscreenChange);
+    return () => {
+      document.removeEventListener("fullscreenchange", handleFullscreenChange);
+    };
+  }, []);
+
+  const handleToggleFullscreenAction = () => {
+    const playerElem = document.getElementById("main-video-player-container");
+    if (!document.fullscreenElement) {
+      if (playerElem?.requestFullscreen) {
+        playerElem.requestFullscreen().catch((err) => console.warn("Fullscreen request error:", err));
+      }
+    } else {
+      if (document.exitFullscreen) {
+        document.exitFullscreen().catch((err) => console.warn("Exit fullscreen error:", err));
+      }
+    }
+  };
+
   const handleChangeVideoAction = (newVideoId) => {
     if (!newVideoId) return;
     setVideoId(newVideoId);
@@ -417,6 +464,8 @@ export default function WatchRoom({
               remoteSeekTarget={remoteSeekTarget}
               canControl={canControl}
               reactions={reactions}
+              isFullscreen={isFullscreen}
+              onToggleFullscreen={handleToggleFullscreenAction}
               onLocalPlay={handlePlayAction}
               onLocalPause={handlePauseAction}
               onDurationChange={setDuration}
@@ -425,10 +474,16 @@ export default function WatchRoom({
             />
 
             <RoomControls
+              videoId={videoId}
               isPlaying={isPlaying}
               currentTime={currentTime}
               duration={duration}
               canControl={canControl}
+              isFullscreen={isFullscreen}
+              onToggleFullscreen={handleToggleFullscreenAction}
+              onSkipBackward={handleSkipBackwardAction}
+              onSkipForward={handleSkipForwardAction}
+              onSkipNextVideo={handleSkipNextVideoAction}
               onPlay={() => handlePlayAction(currentTime)}
               onPause={() => handlePauseAction(currentTime)}
               onSeek={handleSeekAction}
@@ -438,16 +493,7 @@ export default function WatchRoom({
           </div>
 
           {/* Right Column: Tabbed Sidebar (Chat & Participants) */}
-          <div
-            className="glass-panel"
-            style={{
-              height: "calc(100vh - 120px)",
-              minHeight: "560px",
-              display: "flex",
-              flexDirection: "column",
-              overflow: "hidden",
-            }}
-          >
+          <div className="glass-panel watch-sidebar">
             {/* Quick Participant Preview Bar */}
             <div
               style={{

@@ -155,9 +155,9 @@ export default function Home({ onJoinRoom, initialRoomId = "" }) {
   };
 
   return (
-    <div style={{ maxWidth: "1100px", margin: "0 auto", padding: "40px 20px" }}>
+    <div style={{ maxWidth: "1100px", margin: "0 auto", padding: "clamp(20px, 4vw, 40px) clamp(10px, 3vw, 20px)" }}>
       {/* Hero Section */}
-      <div style={{ textAlign: "center", marginBottom: "40px" }}>
+      <div style={{ textAlign: "center", marginBottom: "32px" }}>
         <div
           style={{
             display: "inline-flex",
@@ -179,10 +179,10 @@ export default function Home({ onJoinRoom, initialRoomId = "" }) {
 
         <h1
           style={{
-            fontSize: "clamp(32px, 5vw, 56px)",
+            fontSize: "clamp(26px, 5.5vw, 54px)",
             fontWeight: 800,
-            lineHeight: 1.15,
-            marginBottom: "16px",
+            lineHeight: 1.18,
+            marginBottom: "14px",
             background: "linear-gradient(135deg, #ffffff 30%, #a855f7 100%)",
             WebkitBackgroundClip: "text",
             WebkitTextFillColor: "transparent",
@@ -192,7 +192,7 @@ export default function Home({ onJoinRoom, initialRoomId = "" }) {
         </h1>
         <p
           style={{
-            fontSize: "16px",
+            fontSize: "clamp(14px, 2vw, 16px)",
             color: "var(--text-muted)",
             maxWidth: "600px",
             margin: "0 auto",
@@ -208,7 +208,7 @@ export default function Home({ onJoinRoom, initialRoomId = "" }) {
         style={{
           maxWidth: "560px",
           margin: "0 auto",
-          padding: "32px",
+          padding: "clamp(20px, 4vw, 32px)",
           boxShadow: "var(--shadow-glow)",
         }}
       >

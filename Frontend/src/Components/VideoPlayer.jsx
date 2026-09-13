@@ -1,5 +1,5 @@
 import React, { useEffect, useRef, useState, useCallback } from "react";
-import { Lock, RefreshCw, Volume2, VolumeX, Play, AlertCircle, Sparkles } from "lucide-react";
+import { Lock, RefreshCw, Volume2, VolumeX, Play, Pause, AlertCircle, Sparkles } from "lucide-react";
 import EmojiReactions from "./EmojiReactions";
 import { DEFAULT_VIDEO_ID } from "../utils/youtube";
 
@@ -49,6 +49,8 @@ export default function VideoPlayer({
   remoteSeekTarget, // { time: number, timestamp: number }
   canControl = false,
   reactions = [],
+  isFullscreen = false,
+  onToggleFullscreen,
   onLocalPlay,
   onLocalPause,
   onDurationChange,
@@ -56,6 +58,7 @@ export default function VideoPlayer({
   onSelectNewVideo,
 }) {
   const activeVideoId = (videoId && videoId.trim().length > 0) ? videoId.trim() : DEFAULT_VIDEO_ID;
+  const playerOuterRef = useRef(null);
   const containerWrapperRef = useRef(null);
   const playerInstanceRef = useRef(null);
   const isInternalUpdateRef = useRef(false);
@@ -94,11 +97,14 @@ export default function VideoPlayer({
           height: "100%",
           playerVars: {
             autoplay: isPlaying ? 1 : 0,
-            controls: 1,
+            controls: 0,
             rel: 0,
             modestbranding: 1,
             enablejsapi: 1,
             playsinline: 1,
+            iv_load_policy: 3,
+            disablekb: 1,
+            fs: 0,
             origin: window.location.origin,
           },
           events: {
@@ -303,15 +309,18 @@ export default function VideoPlayer({
 
   return (
     <div
+      id="main-video-player-container"
+      ref={playerOuterRef}
       style={{
         position: "relative",
-        width: "100%",
-        paddingTop: "56.25%", // 16:9 Aspect Ratio
+        width: isFullscreen ? "100vw" : "100%",
+        height: isFullscreen ? "100vh" : "auto",
+        paddingTop: isFullscreen ? 0 : "56.25%", // 16:9 Aspect Ratio
         background: "#000000",
-        borderRadius: "var(--radius-md)",
+        borderRadius: isFullscreen ? 0 : "var(--radius-md)",
         overflow: "hidden",
-        border: "1px solid var(--border-color)",
-        boxShadow: "0 20px 50px rgba(0, 0, 0, 0.6)",
+        border: isFullscreen ? "none" : "1px solid var(--border-color)",
+        boxShadow: isFullscreen ? "none" : "0 20px 50px rgba(0, 0, 0, 0.6)",
       }}
     >
       {/* Floating Emoji Reactions Overlay */}
@@ -319,13 +328,45 @@ export default function VideoPlayer({
 
       {/* Embedded YouTube IFrame Container */}
       <div
-        ref={containerWrapperRef}
         style={{
           position: "absolute",
           top: 0,
           left: 0,
           width: "100%",
           height: "100%",
+          overflow: "hidden",
+        }}
+      >
+        <div
+          ref={containerWrapperRef}
+          style={{
+            width: "100%",
+            height: "100%",
+            pointerEvents: "none",
+          }}
+        />
+      </div>
+
+      {/* Transparent Clickable Overlay for Host/Mod Play-Pause and Double-Click Fullscreen */}
+      <div
+        onClick={() => {
+          if (!canControl) return;
+          try {
+            const cur = playerInstanceRef.current?.getCurrentTime?.() || 0;
+            if (isPlaying) {
+              onLocalPause && onLocalPause(cur);
+            } else {
+              onLocalPlay && onLocalPlay(cur);
+            }
+          } catch (e) {}
+        }}
+        onDoubleClick={onToggleFullscreen}
+        title={canControl ? (isPlaying ? "Click to Pause (Double-click for Fullscreen)" : "Click to Play (Double-click for Fullscreen)") : "Double-click for Fullscreen"}
+        style={{
+          position: "absolute",
+          inset: 0,
+          cursor: canControl ? "pointer" : "default",
+          zIndex: 10,
         }}
       />
 
@@ -437,32 +478,6 @@ export default function VideoPlayer({
           <p style={{ margin: 0, fontSize: "12px", color: "var(--primary-light)" }}>
             💡 Tip: Choose another video from the presets below or paste any YouTube video link.
           </p>
-        </div>
-      )}
-
-      {/* Participant Sync Badge */}
-      {!canControl && !playerError && (
-        <div
-          style={{
-            position: "absolute",
-            top: "12px",
-            right: "12px",
-            background: "rgba(15, 23, 42, 0.8)",
-            backdropFilter: "blur(8px)",
-            padding: "6px 12px",
-            borderRadius: "var(--radius-full)",
-            border: "1px solid rgba(255, 255, 255, 0.1)",
-            display: "flex",
-            alignItems: "center",
-            gap: "6px",
-            fontSize: "11px",
-            color: "var(--text-muted)",
-            pointerEvents: "none",
-            zIndex: 20,
-          }}
-        >
-          <Lock size={12} color="#94a3b8" />
-          <span>Synced with Host</span>
         </div>
       )}
     </div>
