@@ -92,25 +92,104 @@ export default function Navbar({
 
   return (
     <header className="navbar-container">
-      {/* Brand */}
-      <div className="navbar-brand-group">
-        <div className="navbar-logo-icon">
-          <Play size={16} color="#ffffff" fill="#ffffff" />
-        </div>
-        <div className="navbar-brand-text-wrapper">
-          <div style={{ display: "flex", alignItems: "center", gap: "6px" }}>
-            <span className="navbar-brand-title">WatchParty</span>
-            <span className="hide-on-mobile badge-sync-tag">SYNC</span>
+      {/* Top Bar: Brand on left, Status & Leave on right */}
+      <div className="navbar-top-bar">
+        {/* Brand */}
+        <div className="navbar-brand-group">
+          <div className="navbar-logo-icon">
+            <Play size={16} color="#ffffff" fill="#ffffff" />
           </div>
-          {roomTitle && (
-            <p className="navbar-room-title">{roomTitle}</p>
-          )}
+          <div className="navbar-brand-text-wrapper">
+            <div style={{ display: "flex", alignItems: "center", gap: "6px" }}>
+              <span className="navbar-brand-title">WatchParty</span>
+              <span className="hide-on-mobile badge-sync-tag">SYNC</span>
+            </div>
+            {roomTitle && (
+              <p className="navbar-room-title">{roomTitle}</p>
+            )}
+          </div>
         </div>
+
+        {/* Status Badges & Leave Button */}
+        {roomId ? (
+          <div className="navbar-status-group">
+            {/* User Role Badge */}
+            <div className={`badge nav-role-badge ${getRoleBadgeClass()}`}>
+              {getRoleIcon()}
+              <span>{currentUserRole}</span>
+            </div>
+
+            {/* User Name (Desktop only) */}
+            <div
+              className="hide-on-mobile"
+              style={{
+                fontSize: "12px",
+                fontWeight: 600,
+                color: "var(--text-main)",
+                display: "flex",
+                alignItems: "center",
+                gap: "6px",
+              }}
+            >
+              <div
+                style={{
+                  width: "24px",
+                  height: "24px",
+                  borderRadius: "50%",
+                  background: "rgba(139, 92, 246, 0.25)",
+                  border: "1px solid rgba(139, 92, 246, 0.4)",
+                  display: "flex",
+                  alignItems: "center",
+                  justifyContent: "center",
+                  fontSize: "10px",
+                  color: "#d8b4fe",
+                  fontWeight: 700,
+                }}
+              >
+                {(username || "U").charAt(0).toUpperCase()}
+              </div>
+              <span>{username}</span>
+            </div>
+
+            {/* Live Indicator */}
+            <div className="nav-live-badge">
+              <div className="pulse-dot" style={{ width: "6px", height: "6px" }} />
+              <span className="hide-on-mobile">LIVE</span>
+            </div>
+
+            {/* Leave Button */}
+            {onLeave && (
+              <button
+                onClick={onLeave}
+                className="btn btn-danger nav-action-btn nav-leave-btn"
+                title="Leave Room"
+              >
+                <LogOut size={13} />
+                <span className="hide-on-xs">Leave</span>
+              </button>
+            )}
+          </div>
+        ) : (
+          <div style={{ display: "flex", alignItems: "center", gap: "8px" }}>
+            <div
+              style={{
+                display: "flex",
+                alignItems: "center",
+                gap: "6px",
+                fontSize: "12px",
+                color: "var(--text-muted)",
+              }}
+            >
+              <Radio size={14} color="#10b981" />
+              <span>Socket.IO Ready</span>
+            </div>
+          </div>
+        )}
       </div>
 
-      {/* Room Details & Actions */}
-      {roomId ? (
-        <div className="navbar-actions-group">
+      {/* Share Actions Bar (Desktop sits inline, Mobile takes dedicated 2nd row) */}
+      {roomId && (
+        <div className="navbar-share-bar">
           {/* Share Link Button */}
           <button
             onClick={handleShareLink}
@@ -119,13 +198,13 @@ export default function Navbar({
           >
             {copiedLink ? (
               <>
-                <Check size={12} color="#34d399" />
-                <span className="nav-btn-label">Copied!</span>
+                <Check size={13} color="#34d399" />
+                <span className="nav-btn-label">Link Copied!</span>
               </>
             ) : (
               <>
-                <Share2 size={12} color="#c084fc" />
-                <span className="nav-btn-label">Share</span>
+                <Share2 size={13} color="#c084fc" />
+                <span className="nav-btn-label">Share Party</span>
               </>
             )}
           </button>
@@ -138,88 +217,17 @@ export default function Navbar({
           >
             {copiedId ? (
               <>
-                <Check size={11} color="#34d399" />
-                <span className="nav-btn-label" style={{ color: "#34d399", fontWeight: 700 }}>Copied!</span>
+                <Check size={12} color="#34d399" />
+                <span className="nav-btn-label" style={{ color: "#34d399", fontWeight: 700 }}>ID Copied!</span>
               </>
             ) : (
               <>
-                <span className="hide-on-xs nav-id-prefix">ID:</span>
+                <span className="nav-id-prefix">ID:</span>
                 <span className="nav-roomid-code">{roomId}</span>
-                <Copy size={11} color="#94a3b8" />
+                <Copy size={12} color="#94a3b8" />
               </>
             )}
           </button>
-
-          {/* User Role Badge */}
-          <div className={`badge nav-role-badge ${getRoleBadgeClass()}`}>
-            {getRoleIcon()}
-            <span>{currentUserRole}</span>
-          </div>
-
-          {/* User Name (Desktop only) */}
-          <div
-            className="hide-on-mobile"
-            style={{
-              fontSize: "12px",
-              fontWeight: 600,
-              color: "var(--text-main)",
-              display: "flex",
-              alignItems: "center",
-              gap: "6px",
-            }}
-          >
-            <div
-              style={{
-                width: "24px",
-                height: "24px",
-                borderRadius: "50%",
-                background: "rgba(139, 92, 246, 0.25)",
-                border: "1px solid rgba(139, 92, 246, 0.4)",
-                display: "flex",
-                alignItems: "center",
-                justifyContent: "center",
-                fontSize: "10px",
-                color: "#d8b4fe",
-                fontWeight: 700,
-              }}
-            >
-              {(username || "U").charAt(0).toUpperCase()}
-            </div>
-            <span>{username}</span>
-          </div>
-
-          {/* Live Indicator */}
-          <div className="nav-live-badge">
-            <div className="pulse-dot" style={{ width: "6px", height: "6px" }} />
-            <span className="hide-on-xs">LIVE</span>
-          </div>
-
-          {/* Leave Button */}
-          {onLeave && (
-            <button
-              onClick={onLeave}
-              className="btn btn-danger nav-action-btn nav-leave-btn"
-              title="Leave Room"
-            >
-              <LogOut size={12} />
-              <span className="hide-on-xs">Leave</span>
-            </button>
-          )}
-        </div>
-      ) : (
-        <div style={{ display: "flex", alignItems: "center", gap: "8px" }}>
-          <div
-            style={{
-              display: "flex",
-              alignItems: "center",
-              gap: "6px",
-              fontSize: "12px",
-              color: "var(--text-muted)",
-            }}
-          >
-            <Radio size={14} color="#10b981" />
-            <span>Socket.IO Ready</span>
-          </div>
         </div>
       )}
     </header>

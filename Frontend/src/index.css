@@ -691,7 +691,16 @@ h1, h2, h3, h4, h5, h6 {
   position: sticky;
   top: 0;
   z-index: 40;
-  gap: 10px;
+  gap: 16px;
+}
+
+.navbar-top-bar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+  flex: 1;
+  min-width: 0;
 }
 
 .navbar-brand-group {
@@ -748,20 +757,25 @@ h1, h2, h3, h4, h5, h6 {
   white-space: nowrap;
 }
 
-.navbar-actions-group {
+.navbar-status-group {
   display: flex;
   align-items: center;
   gap: 8px;
-  flex-wrap: nowrap;
-  justify-content: flex-end;
-  min-width: 0;
+  flex-shrink: 0;
+}
+
+.navbar-share-bar {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex-shrink: 0;
 }
 
 .nav-action-btn {
   display: flex;
   align-items: center;
-  gap: 5px;
-  padding: 6px 11px;
+  gap: 6px;
+  padding: 6px 12px;
   border-radius: var(--radius-full);
   font-size: 12px;
   font-weight: 600;
@@ -789,7 +803,7 @@ h1, h2, h3, h4, h5, h6 {
 }
 
 .nav-roomid-btn {
-  padding: 6px 9px;
+  padding: 6px 12px;
   background: rgba(255, 255, 255, 0.05);
 }
 
@@ -863,11 +877,6 @@ h1, h2, h3, h4, h5, h6 {
 
 /* Mobile Screens (<= 768px) */
 @media (max-width: 768px) {
-  .navbar-container {
-    padding: 8px 12px;
-    gap: 8px;
-  }
-
   .room-controls-card {
     padding: 14px 12px;
     margin-top: 12px;
@@ -946,15 +955,27 @@ h1, h2, h3, h4, h5, h6 {
   }
 }
 
-/* Extra Mobile / Small Phones (<= 520px) */
-@media (max-width: 520px) {
-  .main-content {
-    padding: 10px 8px;
+/* Mobile Screens (<= 640px) */
+@media (max-width: 640px) {
+  .navbar-container {
+    flex-direction: column;
+    align-items: stretch;
+    padding: 10px 12px;
+    gap: 8px;
   }
 
-  .navbar-container {
-    padding: 8px 10px;
-    gap: 6px;
+  .navbar-top-bar {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    width: 100%;
+    gap: 8px;
+  }
+
+  .navbar-brand-group {
+    min-width: 0;
+    flex: 1;
+    gap: 8px;
   }
 
   .navbar-logo-icon {
@@ -968,30 +989,59 @@ h1, h2, h3, h4, h5, h6 {
   }
 
   .navbar-room-title {
-    max-width: 110px;
+    max-width: 130px;
     font-size: 10px;
   }
 
-  .navbar-actions-group {
-    gap: 5px;
+  .navbar-status-group {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    flex-shrink: 0;
   }
 
-  .nav-action-btn {
-    padding: 5px 8px;
-    font-size: 11px;
-    height: 30px;
+  .navbar-share-bar {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    width: 100%;
+  }
+
+  .navbar-share-bar .nav-action-btn {
+    flex: 1;
+    justify-content: center;
+    padding: 7px 10px;
+    font-size: 12px;
+    height: 34px;
+  }
+}
+
+/* Extra Mobile / Small Phones (<= 480px) */
+@media (max-width: 480px) {
+  .main-content {
+    padding: 10px 8px;
+  }
+
+  .navbar-container {
+    padding: 8px 10px;
+    gap: 7px;
+  }
+
+  .navbar-room-title {
+    max-width: 110px;
+    font-size: 10px;
   }
 
   .nav-role-badge {
     padding: 3px 7px;
     font-size: 10px;
-    height: 30px;
+    height: 28px;
   }
 
   .nav-live-badge {
     padding: 3px 6px;
     font-size: 10px;
-    height: 30px;
+    height: 28px;
   }
 
   .hide-on-xs {
@@ -1021,26 +1071,28 @@ h1, h2, h3, h4, h5, h6 {
 @media (max-width: 360px) {
   .navbar-container {
     padding: 6px 8px;
-    gap: 4px;
+    gap: 6px;
   }
 
   .navbar-brand-title {
     font-size: 14px;
   }
 
-  .navbar-actions-group {
-    gap: 4px;
+  .navbar-room-title {
+    max-width: 90px;
   }
 
-  .nav-action-btn {
-    padding: 4px 6px;
-    font-size: 10px;
+  .navbar-share-bar .nav-action-btn {
+    padding: 6px 6px;
+    font-size: 11px;
+    height: 32px;
   }
 
   .nav-roomid-code {
     font-size: 11px;
   }
 }
+
 
 
 
