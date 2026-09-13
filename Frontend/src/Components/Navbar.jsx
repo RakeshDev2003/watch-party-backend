@@ -92,27 +92,74 @@ export default function Navbar({
 
   return (
     <header className="navbar-container">
-      {/* Top Bar: Brand on left, Status & Leave on right */}
-      <div className="navbar-top-bar">
-        {/* Brand */}
-        <div className="navbar-brand-group">
-          <div className="navbar-logo-icon">
-            <Play size={16} color="#ffffff" fill="#ffffff" />
-          </div>
-          <div className="navbar-brand-text-wrapper">
-            <div style={{ display: "flex", alignItems: "center", gap: "6px" }}>
-              <span className="navbar-brand-title">WatchParty</span>
-              <span className="hide-on-mobile badge-sync-tag">SYNC</span>
-            </div>
-            {roomTitle && (
-              <p className="navbar-room-title">{roomTitle}</p>
-            )}
-          </div>
+      {/* 1. Brand Group */}
+      <div className="navbar-brand-group">
+        <div className="navbar-logo-icon">
+          <Play size={16} color="#ffffff" fill="#ffffff" />
         </div>
+        <div className="navbar-brand-text-wrapper">
+          <div style={{ display: "flex", alignItems: "center", gap: "6px" }}>
+            <span className="navbar-brand-title">WatchParty</span>
+            <span className="hide-on-mobile badge-sync-tag">SYNC</span>
+          </div>
+          {roomTitle && (
+            <p className="navbar-room-title">{roomTitle}</p>
+          )}
+        </div>
+      </div>
 
-        {/* Status Badges & Leave Button */}
-        {roomId ? (
-          <div className="navbar-status-group">
+      {roomId ? (
+        <>
+          {/* 2. Room Share & ID Group */}
+          <div className="navbar-share-group">
+            {/* Room ID Copy Button */}
+            <button
+              onClick={handleCopyRoomId}
+              className={`nav-action-btn nav-roomid-btn ${copiedId ? "copied" : ""}`}
+              title="Click to copy Room ID"
+            >
+              {copiedId ? (
+                <>
+                  <Check size={12} color="#34d399" />
+                  <span className="nav-btn-label" style={{ color: "#34d399", fontWeight: 700 }}>ID Copied!</span>
+                </>
+              ) : (
+                <>
+                  <span className="nav-id-prefix">ID:</span>
+                  <span className="nav-roomid-code">{roomId}</span>
+                  <Copy size={12} color="#94a3b8" />
+                </>
+              )}
+            </button>
+
+            {/* Share Link Button */}
+            <button
+              onClick={handleShareLink}
+              className={`nav-action-btn nav-share-btn ${copiedLink ? "copied" : ""}`}
+              title="Click to copy invite link or share with friends"
+            >
+              {copiedLink ? (
+                <>
+                  <Check size={13} color="#34d399" />
+                  <span className="nav-btn-label">Link Copied!</span>
+                </>
+              ) : (
+                <>
+                  <Share2 size={13} color="#c084fc" />
+                  <span className="nav-btn-label">Share Party</span>
+                </>
+              )}
+            </button>
+          </div>
+
+          {/* 3. User Identity, Status & Exit Group */}
+          <div className="navbar-user-group">
+            {/* Live Indicator */}
+            <div className="nav-live-badge">
+              <div className="pulse-dot" style={{ width: "6px", height: "6px" }} />
+              <span className="hide-on-mobile">LIVE</span>
+            </div>
+
             {/* User Role Badge */}
             <div className={`badge nav-role-badge ${getRoleBadgeClass()}`}>
               {getRoleIcon()}
@@ -121,7 +168,7 @@ export default function Navbar({
 
             {/* User Name (Desktop only) */}
             <div
-              className="hide-on-mobile"
+              className="navbar-user-profile hide-on-mobile"
               style={{
                 fontSize: "12px",
                 fontWeight: 600,
@@ -151,13 +198,7 @@ export default function Navbar({
               <span>{username}</span>
             </div>
 
-            {/* Live Indicator */}
-            <div className="nav-live-badge">
-              <div className="pulse-dot" style={{ width: "6px", height: "6px" }} />
-              <span className="hide-on-mobile">LIVE</span>
-            </div>
-
-            {/* Leave Button */}
+            {/* Leave Button (Always on the far right) */}
             {onLeave && (
               <button
                 onClick={onLeave}
@@ -169,65 +210,21 @@ export default function Navbar({
               </button>
             )}
           </div>
-        ) : (
-          <div style={{ display: "flex", alignItems: "center", gap: "8px" }}>
-            <div
-              style={{
-                display: "flex",
-                alignItems: "center",
-                gap: "6px",
-                fontSize: "12px",
-                color: "var(--text-muted)",
-              }}
-            >
-              <Radio size={14} color="#10b981" />
-              <span>Socket.IO Ready</span>
-            </div>
+        </>
+      ) : (
+        <div style={{ display: "flex", alignItems: "center", gap: "8px" }}>
+          <div
+            style={{
+              display: "flex",
+              alignItems: "center",
+              gap: "6px",
+              fontSize: "12px",
+              color: "var(--text-muted)",
+            }}
+          >
+            <Radio size={14} color="#10b981" />
+            <span>Socket.IO Ready</span>
           </div>
-        )}
-      </div>
-
-      {/* Share Actions Bar (Desktop sits inline, Mobile takes dedicated 2nd row) */}
-      {roomId && (
-        <div className="navbar-share-bar">
-          {/* Share Link Button */}
-          <button
-            onClick={handleShareLink}
-            className={`nav-action-btn nav-share-btn ${copiedLink ? "copied" : ""}`}
-            title="Click to copy invite link or share with friends"
-          >
-            {copiedLink ? (
-              <>
-                <Check size={13} color="#34d399" />
-                <span className="nav-btn-label">Link Copied!</span>
-              </>
-            ) : (
-              <>
-                <Share2 size={13} color="#c084fc" />
-                <span className="nav-btn-label">Share Party</span>
-              </>
-            )}
-          </button>
-
-          {/* Room ID Copy Button */}
-          <button
-            onClick={handleCopyRoomId}
-            className={`nav-action-btn nav-roomid-btn ${copiedId ? "copied" : ""}`}
-            title="Click to copy Room ID"
-          >
-            {copiedId ? (
-              <>
-                <Check size={12} color="#34d399" />
-                <span className="nav-btn-label" style={{ color: "#34d399", fontWeight: 700 }}>ID Copied!</span>
-              </>
-            ) : (
-              <>
-                <span className="nav-id-prefix">ID:</span>
-                <span className="nav-roomid-code">{roomId}</span>
-                <Copy size={12} color="#94a3b8" />
-              </>
-            )}
-          </button>
         </div>
       )}
     </header>
