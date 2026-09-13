@@ -683,7 +683,7 @@ h1, h2, h3, h4, h5, h6 {
   display: flex;
   align-items: center;
   justify-content: space-between;
-  padding: 10px 24px;
+  padding: 15px 30px;
   border-bottom: 1px solid var(--border-color);
   background: rgba(9, 13, 22, 0.88);
   backdrop-filter: blur(14px);
@@ -691,26 +691,26 @@ h1, h2, h3, h4, h5, h6 {
   position: sticky;
   top: 0;
   z-index: 40;
-  gap: 12px;
+  gap: 14px;
 }
 
 .navbar-brand-group {
   display: flex;
   align-items: center;
-  gap: 10px;
+  gap: 12px;
   flex-shrink: 0;
   min-width: 0;
 }
 
 .navbar-logo-icon {
-  width: 36px;
-  height: 36px;
-  border-radius: 10px;
+  width: 38px;
+  height: 38px;
+  border-radius: 11px;
   background: linear-gradient(135deg, #ef4444 0%, #8b5cf6 100%);
   display: flex;
   align-items: center;
   justify-content: center;
-  box-shadow: 0 0 15px rgba(239, 68, 68, 0.35);
+  box-shadow: 0 0 16px rgba(239, 68, 68, 0.35);
   flex-shrink: 0;
 }
 
@@ -721,7 +721,7 @@ h1, h2, h3, h4, h5, h6 {
 .navbar-brand-title {
   font-family: var(--font-heading);
   font-weight: 700;
-  font-size: 17px;
+  font-size: 18px;
   letter-spacing: -0.01em;
   background: linear-gradient(90deg, #ffffff 0%, #cbd5e1 100%);
   -webkit-background-clip: text;
@@ -731,7 +731,7 @@ h1, h2, h3, h4, h5, h6 {
 
 .badge-sync-tag {
   font-size: 9px;
-  padding: 1px 5px;
+  padding: 2px 6px;
   border-radius: 4px;
   background: rgba(139, 92, 246, 0.15);
   color: #c084fc;
@@ -742,7 +742,7 @@ h1, h2, h3, h4, h5, h6 {
   font-size: 11px;
   color: var(--text-muted);
   margin: 0;
-  max-width: 180px;
+  max-width: 190px;
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
@@ -751,37 +751,37 @@ h1, h2, h3, h4, h5, h6 {
 .navbar-share-group {
   display: flex;
   align-items: center;
-  gap: 8px;
+  gap: 10px;
   margin-left: auto;
 }
 
 .navbar-user-group {
   display: flex;
   align-items: center;
-  gap: 8px;
+  gap: 10px;
   flex-shrink: 0;
 }
 
 .navbar-user-profile {
   display: flex;
   align-items: center;
-  gap: 6px;
-  font-size: 12px;
+  gap: 7px;
+  font-size: 13px;
   font-weight: 600;
   color: var(--text-main);
 }
 
 .user-avatar-mini {
-  width: 24px;
-  height: 24px;
+  width: 26px;
+  height: 26px;
   border-radius: 50%;
   background: rgba(139, 92, 246, 0.25);
   border: 1px solid rgba(139, 92, 246, 0.4);
   display: flex;
   align-items: center;
   justify-content: center;
-  font-size: 10px;
-  color: "#d8b4fe";
+  font-size: 11px;
+  color: #d8b4fe;
   font-weight: 700;
 }
 
@@ -789,7 +789,7 @@ h1, h2, h3, h4, h5, h6 {
   display: flex;
   align-items: center;
   gap: 6px;
-  padding: 6px 12px;
+  padding: 7px 14px;
   border-radius: var(--radius-full);
   font-size: 12px;
   font-weight: 600;
