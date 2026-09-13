@@ -160,42 +160,16 @@ export default function Navbar({
               <span className="hide-on-mobile">LIVE</span>
             </div>
 
-            {/* User Role Badge */}
-            <div className={`badge nav-role-badge ${getRoleBadgeClass()}`}>
-              {getRoleIcon()}
-              <span>{currentUserRole}</span>
-            </div>
-
-            {/* User Name (Desktop only) */}
-            <div
-              className="navbar-user-profile hide-on-mobile"
-              style={{
-                fontSize: "12px",
-                fontWeight: 600,
-                color: "var(--text-main)",
-                display: "flex",
-                alignItems: "center",
-                gap: "6px",
-              }}
-            >
-              <div
-                style={{
-                  width: "24px",
-                  height: "24px",
-                  borderRadius: "50%",
-                  background: "rgba(139, 92, 246, 0.25)",
-                  border: "1px solid rgba(139, 92, 246, 0.4)",
-                  display: "flex",
-                  alignItems: "center",
-                  justifyContent: "center",
-                  fontSize: "10px",
-                  color: "#d8b4fe",
-                  fontWeight: 700,
-                }}
-              >
+            {/* Merged User Profile & Role Chip */}
+            <div className="navbar-user-chip" title={`${username} (${currentUserRole})`}>
+              <div className="user-avatar-mini">
                 {(username || "U").charAt(0).toUpperCase()}
               </div>
-              <span>{username}</span>
+              <span className="navbar-username-text hide-on-xs">{username}</span>
+              <span className={`badge-role-tag ${getRoleBadgeClass()}`}>
+                {getRoleIcon()}
+                <span>{currentUserRole}</span>
+              </span>
             </div>
 
             {/* Leave Button (Always on the far right) */}
