@@ -173,6 +173,30 @@ const setupRoomSocket = (io) => {
     });
 
     /**
+     * request_sync
+     * Allows any participant/client to request the latest accurate room playback state
+     */
+    socket.on("request_sync", ({ roomId }) => {
+      const room = roomManager.getRoom(roomId);
+      if (room) {
+        socket.emit("sync_state", room.getSyncPayload());
+      }
+    });
+
+    /**
+     * sync_playback
+     * Periodic heartbeat from host/moderator to keep server calculated live timestamp accurate
+     */
+    socket.on("sync_playback", ({ roomId, currentTime, isPlaying }) => {
+      const room = roomManager.getRoom(roomId);
+      if (room && room.canControlPlayback(socket.id)) {
+        if (typeof isPlaying === "boolean" || typeof currentTime === "number") {
+          room.updatePlayback(isPlaying, currentTime);
+        }
+      }
+    });
+
+    /**
      * change_video
      * Requires: Host or Moderator
      * Payload: { roomId, videoId }

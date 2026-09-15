@@ -20,10 +20,17 @@ export default function WatchRoom({
   const [videoId, setVideoId] = useState(initialVideoId || DEFAULT_VIDEO_ID);
   const [isPlaying, setIsPlaying] = useState(false);
   const [currentTime, setCurrentTime] = useState(0);
-  const [remoteSeekTarget, setRemoteSeekTarget] = useState(null); // { time: number, timestamp: number }
+  const [remoteSeekTarget, setRemoteSeekTarget] = useState(null); // { time: number, timestamp: number, force?: boolean }
   const [duration, setDuration] = useState(0);
   const [participants, setParticipants] = useState([]);
   const [hostId, setHostId] = useState(null);
+
+  // Participant Local Playback State (Pause locally vs Catch up to live host)
+  const [isParticipantLocallyPaused, setIsParticipantLocallyPaused] = useState(false);
+
+  // References for live time computation
+  const lastSyncHostTimeRef = useRef(0);
+  const lastSyncTimestampRef = useRef(Date.now());
 
   // Fullscreen State
   const [isFullscreen, setIsFullscreen] = useState(false);
@@ -46,7 +53,7 @@ export default function WatchRoom({
     setToastMessage(text);
     setTimeout(() => {
       setToastMessage((cur) => (cur === text ? null : cur));
-    }, 3800);
+    }, 3500);
   };
 
   // Find current user's role from participants list or fallback to isHost
@@ -62,6 +69,15 @@ export default function WatchRoom({
   const isUserHost = currentUserRole === "Host";
   const canControl = currentUserRole === "Host" || currentUserRole === "Moderator";
 
+  // Calculate live host timestamp at any second
+  const getEstimatedHostLiveTime = () => {
+    if (!isPlaying) {
+      return lastSyncHostTimeRef.current;
+    }
+    const elapsedSeconds = (Date.now() - lastSyncTimestampRef.current) / 1000;
+    return Math.max(0, lastSyncHostTimeRef.current + elapsedSeconds);
+  };
+
   // 1. Initial HTTP Fetch Fallback for immediate state hydration
   useEffect(() => {
     const fetchRoomFallback = async () => {
@@ -74,6 +90,8 @@ export default function WatchRoom({
           if (typeof data.room.isPlaying === "boolean") setIsPlaying(data.room.isPlaying);
           if (typeof data.room.currentTime === "number") {
             setCurrentTime(data.room.currentTime);
+            lastSyncHostTimeRef.current = data.room.currentTime;
+            lastSyncTimestampRef.current = Date.now();
             setRemoteSeekTarget({ time: data.room.currentTime, timestamp: Date.now() });
           }
           if (Array.isArray(data.room.participants) && data.room.participants.length > 0) {
@@ -88,7 +106,18 @@ export default function WatchRoom({
     fetchRoomFallback();
   }, [roomId]);
 
-  // 2. Socket Connection & Event Listeners Lifecycle
+  // 2. Periodic Host Heartbeat (Keeps server calculated live timestamp accurate)
+  useEffect(() => {
+    if (!canControl || !isPlaying) return;
+
+    const interval = setInterval(() => {
+      socketService.sendSyncPlayback(roomId, currentTime, isPlaying);
+    }, 4000);
+
+    return () => clearInterval(interval);
+  }, [roomId, canControl, isPlaying, currentTime]);
+
+  // 3. Socket Connection & Event Listeners Lifecycle
   useEffect(() => {
     const socket = socketService.connect();
 
@@ -99,7 +128,13 @@ export default function WatchRoom({
       if (typeof data.isPlaying === "boolean") setIsPlaying(data.isPlaying);
       if (typeof data.currentTime === "number") {
         setCurrentTime(data.currentTime);
-        setRemoteSeekTarget({ time: data.currentTime, timestamp: Date.now() });
+        lastSyncHostTimeRef.current = data.currentTime;
+        lastSyncTimestampRef.current = Date.now();
+        
+        // If participant is not paused locally, sync seek target
+        if (!isParticipantLocallyPaused) {
+          setRemoteSeekTarget({ time: data.currentTime, timestamp: Date.now() });
+        }
       }
       if (Array.isArray(data.participants)) setParticipants(data.participants);
       if (data.hostId) setHostId(data.hostId);
@@ -108,20 +143,28 @@ export default function WatchRoom({
     // Event: play / pause / seek / change_video
     const handlePlay = (data) => {
       setIsPlaying(true);
-      if (typeof data?.currentTime === "number") {
-        setCurrentTime(data.currentTime);
-      }
+      setIsParticipantLocallyPaused(false);
+      const playTime = typeof data?.currentTime === "number" ? data.currentTime : lastSyncHostTimeRef.current;
+      lastSyncHostTimeRef.current = playTime;
+      lastSyncTimestampRef.current = Date.now();
+      setCurrentTime(playTime);
+      setRemoteSeekTarget({ time: playTime, timestamp: Date.now() });
     };
 
     const handlePause = (data) => {
       setIsPlaying(false);
-      if (typeof data?.currentTime === "number") {
-        setCurrentTime(data.currentTime);
-      }
+      setIsParticipantLocallyPaused(false);
+      const pauseTime = typeof data?.currentTime === "number" ? data.currentTime : lastSyncHostTimeRef.current;
+      lastSyncHostTimeRef.current = pauseTime;
+      lastSyncTimestampRef.current = Date.now();
+      setCurrentTime(pauseTime);
+      setRemoteSeekTarget({ time: pauseTime, timestamp: Date.now() });
     };
 
     const handleSeek = (data) => {
       if (typeof data?.time === "number") {
+        lastSyncHostTimeRef.current = data.time;
+        lastSyncTimestampRef.current = Date.now();
         setCurrentTime(data.time);
         setRemoteSeekTarget({ time: data.time, timestamp: Date.now() });
       }
@@ -131,7 +174,10 @@ export default function WatchRoom({
       if (data?.videoId) {
         setVideoId(data.videoId);
         setCurrentTime(0);
+        lastSyncHostTimeRef.current = 0;
+        lastSyncTimestampRef.current = Date.now();
         setIsPlaying(true);
+        setIsParticipantLocallyPaused(false);
         setRemoteSeekTarget({ time: 0, timestamp: Date.now() });
         showToast("🎬 Video changed by host/moderator");
       }
@@ -257,18 +303,26 @@ export default function WatchRoom({
     };
   }, [roomId, username, userId, initialVideoId, isHost]);
 
-  // Handlers for user triggers
+  // Host/Mod control actions
   const handlePlayAction = (time) => {
     setIsPlaying(true);
-    socketService.sendPlay(roomId, time ?? currentTime);
+    const targetTime = typeof time === "number" ? time : currentTime;
+    lastSyncHostTimeRef.current = targetTime;
+    lastSyncTimestampRef.current = Date.now();
+    socketService.sendPlay(roomId, targetTime);
   };
 
   const handlePauseAction = (time) => {
     setIsPlaying(false);
-    socketService.sendPause(roomId, time ?? currentTime);
+    const targetTime = typeof time === "number" ? time : currentTime;
+    lastSyncHostTimeRef.current = targetTime;
+    lastSyncTimestampRef.current = Date.now();
+    socketService.sendPause(roomId, targetTime);
   };
 
   const handleSeekAction = (time) => {
+    lastSyncHostTimeRef.current = time;
+    lastSyncTimestampRef.current = Date.now();
     setCurrentTime(time);
     setRemoteSeekTarget({ time, timestamp: Date.now() });
     socketService.sendSeek(roomId, time);
@@ -292,6 +346,28 @@ export default function WatchRoom({
     const nextVideo = PRESET_VIDEOS[nextIndex];
     handleChangeVideoAction(nextVideo.id);
     showToast(`⏭️ Switched to: ${nextVideo.title}`);
+  };
+
+  // Participant Local Actions: Pause & Auto-Catch up Live
+  const handleParticipantPauseAction = () => {
+    setIsParticipantLocallyPaused(true);
+    showToast("⏸️ Video paused locally for you");
+  };
+
+  const handleParticipantPlayAction = () => {
+    setIsParticipantLocallyPaused(false);
+    const liveTime = getEstimatedHostLiveTime();
+    setRemoteSeekTarget({ time: liveTime, timestamp: Date.now(), force: true });
+    socketService.requestSync(roomId);
+    showToast("⚡ Resumed & synced to live host video");
+  };
+
+  const handleCatchUpLiveAction = () => {
+    setIsParticipantLocallyPaused(false);
+    const liveTime = getEstimatedHostLiveTime();
+    setRemoteSeekTarget({ time: liveTime, timestamp: Date.now(), force: true });
+    socketService.requestSync(roomId);
+    showToast("🔴 Synced live with host!");
   };
 
   // Fullscreen sync listener
@@ -322,7 +398,10 @@ export default function WatchRoom({
     if (!newVideoId) return;
     setVideoId(newVideoId);
     setCurrentTime(0);
+    lastSyncHostTimeRef.current = 0;
+    lastSyncTimestampRef.current = Date.now();
     setIsPlaying(true);
+    setIsParticipantLocallyPaused(false);
     setRemoteSeekTarget({ time: 0, timestamp: Date.now() });
     socketService.sendChangeVideo(roomId, newVideoId);
   };
@@ -357,6 +436,8 @@ export default function WatchRoom({
           role: currentUserRole,
         },
       ];
+
+  const estimatedLiveHostTime = getEstimatedHostLiveTime();
 
   return (
     <div className="app-container">
@@ -463,11 +544,15 @@ export default function WatchRoom({
               isPlaying={isPlaying}
               remoteSeekTarget={remoteSeekTarget}
               canControl={canControl}
+              isParticipantLocallyPaused={isParticipantLocallyPaused}
+              hostLiveTime={estimatedLiveHostTime}
               reactions={reactions}
               isFullscreen={isFullscreen}
               onToggleFullscreen={handleToggleFullscreenAction}
               onLocalPlay={handlePlayAction}
               onLocalPause={handlePauseAction}
+              onParticipantPlay={handleParticipantPlayAction}
+              onParticipantPause={handleParticipantPauseAction}
               onDurationChange={setDuration}
               onCurrentTimeChange={setCurrentTime}
               onSelectNewVideo={handleChangeVideoAction}
@@ -477,8 +562,10 @@ export default function WatchRoom({
               videoId={videoId}
               isPlaying={isPlaying}
               currentTime={currentTime}
+              hostLiveTime={estimatedLiveHostTime}
               duration={duration}
               canControl={canControl}
+              isParticipantLocallyPaused={isParticipantLocallyPaused}
               isFullscreen={isFullscreen}
               onToggleFullscreen={handleToggleFullscreenAction}
               onSkipBackward={handleSkipBackwardAction}
@@ -486,6 +573,9 @@ export default function WatchRoom({
               onSkipNextVideo={handleSkipNextVideoAction}
               onPlay={() => handlePlayAction(currentTime)}
               onPause={() => handlePauseAction(currentTime)}
+              onParticipantPlay={handleParticipantPlayAction}
+              onParticipantPause={handleParticipantPauseAction}
+              onCatchUpLive={handleCatchUpLiveAction}
               onSeek={handleSeekAction}
               onChangeVideo={handleChangeVideoAction}
               onSendReaction={handleSendReactionAction}

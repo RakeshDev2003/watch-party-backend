@@ -14,6 +14,8 @@ import {
   Link,
   ChevronRight,
   ArrowRight,
+  Radio,
+  Zap,
 } from "lucide-react";
 import { formatDuration, extractYouTubeId, PRESET_VIDEOS } from "../utils/youtube";
 
@@ -23,8 +25,10 @@ export default function RoomControls({
   videoId,
   isPlaying,
   currentTime,
+  hostLiveTime = 0,
   duration,
   canControl,
+  isParticipantLocallyPaused = false,
   isFullscreen = false,
   onToggleFullscreen,
   onSkipBackward,
@@ -32,6 +36,9 @@ export default function RoomControls({
   onSkipNextVideo,
   onPlay,
   onPause,
+  onParticipantPlay,
+  onParticipantPause,
+  onCatchUpLive,
   onSeek,
   onChangeVideo,
   onSendReaction,
@@ -54,24 +61,28 @@ export default function RoomControls({
       return;
     }
 
-    const videoId = extractYouTubeId(videoUrlInput);
-    if (!videoId) {
+    const extractedId = extractYouTubeId(videoUrlInput);
+    if (!extractedId) {
       setUrlError("Could not detect a valid YouTube Video ID from that link.");
       return;
     }
 
-    onChangeVideo(videoId);
+    onChangeVideo(extractedId);
     setVideoUrlInput("");
     setShowPresets(false);
   };
 
-  const handleSelectPreset = (videoId) => {
-    onChangeVideo(videoId);
+  const handleSelectPreset = (presetVideoId) => {
+    onChangeVideo(presetVideoId);
     setShowPresets(false);
     setUrlError("");
   };
 
   const progressPercent = duration > 0 ? (currentTime / duration) * 100 : 0;
+  
+  // Calculate if participant is behind the host
+  const timeDifference = Math.max(0, (hostLiveTime || 0) - (currentTime || 0));
+  const isBehindHost = timeDifference > 3;
 
   return (
     <div className="glass-panel room-controls-card">
@@ -215,7 +226,7 @@ export default function RoomControls({
             disabled={!canControl}
             style={{
               width: "100%",
-              cursor: canControl ? "pointer" : "not-allowed",
+              cursor: canControl ? "pointer" : "default",
               accentColor: "var(--primary)",
               height: "6px",
               borderRadius: "3px",
@@ -235,9 +246,10 @@ export default function RoomControls({
       <div className="playback-bar-container">
         {/* Main Controls Row */}
         <div className="playback-main-row">
-          {/* Primary Controls: Skip Back, Play/Pause, Skip Forward, Restart */}
+          {/* Primary Controls */}
           <div className="playback-primary-group">
             {canControl ? (
+              // HOST / MODERATOR CONTROLS
               <>
                 {/* Skip Back 10s */}
                 <button
@@ -255,7 +267,7 @@ export default function RoomControls({
                   <button
                     onClick={onPause}
                     className="btn btn-secondary control-btn control-play-btn is-playing"
-                    title="Pause video for everyone"
+                    title="Pause video for everyone in room"
                   >
                     <Pause size={16} fill="#fca5a5" />
                     <span>Pause</span>
@@ -264,7 +276,7 @@ export default function RoomControls({
                   <button
                     onClick={onPlay}
                     className="btn btn-primary control-btn control-play-btn"
-                    title="Play video for everyone"
+                    title="Play video for everyone in room"
                   >
                     <Play size={16} fill="#ffffff" />
                     <span>Play</span>
@@ -292,10 +304,58 @@ export default function RoomControls({
                 </button>
               </>
             ) : (
-              <div className="playback-locked-badge">
-                <Lock size={13} color="#94a3b8" />
-                <span>Playback controlled by Host / Moderator</span>
-              </div>
+              // PARTICIPANT CONTROLS (Local Pause / Play with Instant Auto-Sync to Host Live Time)
+              <>
+                {isParticipantLocallyPaused ? (
+                  <button
+                    onClick={onParticipantPlay}
+                    className="btn btn-primary control-btn control-play-btn"
+                    title="Resume and automatically catch up to host's live video"
+                    style={{
+                      background: "linear-gradient(135deg, #8b5cf6 0%, #ec4899 100%)",
+                      boxShadow: "0 0 16px rgba(139, 92, 246, 0.4)",
+                    }}
+                  >
+                    <Play size={16} fill="#ffffff" />
+                    <span>Play (Live Sync)</span>
+                    <Zap size={13} color="#fef08a" />
+                  </button>
+                ) : (
+                  <button
+                    onClick={onParticipantPause}
+                    className="btn btn-secondary control-btn control-play-btn"
+                    title="Pause your local video playback"
+                  >
+                    <Pause size={16} fill="#94a3b8" />
+                    <span>Pause (Local)</span>
+                  </button>
+                )}
+
+                {/* Catch up live button if behind */}
+                {(isBehindHost || isParticipantLocallyPaused) && isPlaying && (
+                  <button
+                    type="button"
+                    onClick={onCatchUpLive}
+                    className="btn btn-secondary control-btn"
+                    style={{
+                      borderColor: "rgba(245, 158, 11, 0.4)",
+                      background: "rgba(245, 158, 11, 0.12)",
+                      color: "#fbbf24",
+                    }}
+                    title={`Catch up ${Math.round(timeDifference)}s to host's live position`}
+                  >
+                    <Radio size={13} color="#fbbf24" />
+                    <span>Catch Up to Live {timeDifference > 3 ? `(+${Math.round(timeDifference)}s)` : ""}</span>
+                  </button>
+                )}
+
+                {!isParticipantLocallyPaused && !isBehindHost && isPlaying && (
+                  <div className="playback-locked-badge" style={{ color: "#86efac", borderColor: "rgba(34, 197, 94, 0.3)" }}>
+                    <div style={{ width: "6px", height: "6px", borderRadius: "50%", background: "#22c55e" }} />
+                    <span>Live with Host</span>
+                  </div>
+                )}
+              </>
             )}
           </div>
 

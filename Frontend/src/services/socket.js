@@ -87,6 +87,14 @@ class SocketService {
     this.getSocket().emit("seek", { roomId, time });
   }
 
+  requestSync(roomId) {
+    this.getSocket().emit("request_sync", { roomId });
+  }
+
+  sendSyncPlayback(roomId, currentTime, isPlaying) {
+    this.getSocket().emit("sync_playback", { roomId, currentTime, isPlaying });
+  }
+
   sendChangeVideo(roomId, videoId) {
     this.getSocket().emit("change_video", { roomId, videoId });
   }

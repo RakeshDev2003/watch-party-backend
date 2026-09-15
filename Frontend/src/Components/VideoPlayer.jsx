@@ -1,5 +1,5 @@
 import React, { useEffect, useRef, useState, useCallback } from "react";
-import { Lock, RefreshCw, Volume2, VolumeX, Play, Pause, AlertCircle, Sparkles } from "lucide-react";
+import { Lock, RefreshCw, Volume2, VolumeX, Play, Pause, AlertCircle, Sparkles, Radio, Zap } from "lucide-react";
 import EmojiReactions from "./EmojiReactions";
 import { DEFAULT_VIDEO_ID } from "../utils/youtube";
 
@@ -48,11 +48,15 @@ export default function VideoPlayer({
   isPlaying,
   remoteSeekTarget, // { time: number, timestamp: number }
   canControl = false,
+  isParticipantLocallyPaused = false,
+  hostLiveTime = 0,
   reactions = [],
   isFullscreen = false,
   onToggleFullscreen,
   onLocalPlay,
   onLocalPause,
+  onParticipantPlay,
+  onParticipantPause,
   onDurationChange,
   onCurrentTimeChange,
   onSelectNewVideo,
@@ -66,7 +70,20 @@ export default function VideoPlayer({
 
   const [isReady, setIsReady] = useState(false);
   const [playerError, setPlayerError] = useState(null);
-  const [autoplayBlocked, setAutoplayBlocked] = useState(false);
+  const [isMutedByAutoplay, setIsMutedByAutoplay] = useState(false);
+  const [localPlayingState, setLocalPlayingState] = useState(false);
+
+  // Unmute helper
+  const handleUnmute = useCallback(() => {
+    try {
+      if (playerInstanceRef.current) {
+        if (playerInstanceRef.current.unMute) playerInstanceRef.current.unMute();
+        if (playerInstanceRef.current.setVolume) playerInstanceRef.current.setVolume(100);
+        if (playerInstanceRef.current.playVideo) playerInstanceRef.current.playVideo();
+      }
+    } catch (e) {}
+    setIsMutedByAutoplay(false);
+  }, []);
 
   // Initialize or re-create the YouTube player instance
   const initPlayer = useCallback(() => {
@@ -87,6 +104,8 @@ export default function VideoPlayer({
     mountDiv.style.height = "100%";
     containerWrapperRef.current.appendChild(mountDiv);
 
+    const initialStartTime = Math.max(0, remoteSeekTarget?.time || 0);
+
     loadYouTubeIframeAPI().then((YT) => {
       if (!isMountedRef.current || !mountDiv) return;
 
@@ -97,6 +116,7 @@ export default function VideoPlayer({
           height: "100%",
           playerVars: {
             autoplay: isPlaying ? 1 : 0,
+            start: Math.floor(initialStartTime),
             controls: 0,
             rel: 0,
             modestbranding: 1,
@@ -117,15 +137,29 @@ export default function VideoPlayer({
                 if (onDurationChange && dur) {
                   onDurationChange(dur);
                 }
-                // If room is already playing, attempt to sync playback
-                if (isPlaying) {
-                  const playPromise = event.target.playVideo();
-                  // Check if browser blocked unmuted autoplay
+
+                // Initial seek to accurate live time
+                if (initialStartTime > 0) {
+                  event.target.seekTo(initialStartTime, true);
+                }
+
+                // If room is playing and participant is not locally paused, auto play immediately
+                if (isPlaying && !isParticipantLocallyPaused) {
+                  const playRes = event.target.playVideo();
+
+                  // Browser unmuted autoplay policy detection
                   setTimeout(() => {
-                    if (event.target.getPlayerState && event.target.getPlayerState() !== YT.PlayerState.PLAYING) {
-                      setAutoplayBlocked(true);
+                    if (!isMountedRef.current) return;
+                    const st = event.target.getPlayerState ? event.target.getPlayerState() : -1;
+                    if (st !== YT.PlayerState.PLAYING && st !== YT.PlayerState.BUFFERING) {
+                      // Attempt muted autoplay so video starts rolling automatically
+                      try {
+                        event.target.mute();
+                        event.target.playVideo();
+                        setIsMutedByAutoplay(true);
+                      } catch (err) {}
                     }
-                  }, 800);
+                  }, 600);
                 }
               } catch (e) {}
             },
@@ -189,7 +223,7 @@ export default function VideoPlayer({
             videoId: activeVideoId,
             startSeconds: startSec,
           });
-          if (isPlaying && playerInstanceRef.current.playVideo) {
+          if (isPlaying && !isParticipantLocallyPaused && playerInstanceRef.current.playVideo) {
             playerInstanceRef.current.playVideo();
           }
         }
@@ -200,9 +234,9 @@ export default function VideoPlayer({
     } catch (e) {
       console.warn("Video switch warning:", e.message);
     }
-  }, [activeVideoId, isReady, isPlaying]);
+  }, [activeVideoId, isReady, isPlaying, isParticipantLocallyPaused]);
 
-  // Sync Explicit Seek Commands
+  // Sync Explicit Remote Seek Commands from Host
   useEffect(() => {
     if (!isReady || !playerInstanceRef.current || !remoteSeekTarget) return;
 
@@ -221,7 +255,7 @@ export default function VideoPlayer({
     } catch (e) {}
   }, [remoteSeekTarget, isReady]);
 
-  // Sync Play / Pause State
+  // Sync Play / Pause State (Room vs Local)
   useEffect(() => {
     if (!isReady || !playerInstanceRef.current || !window.YT) return;
     const player = playerInstanceRef.current;
@@ -229,13 +263,15 @@ export default function VideoPlayer({
     try {
       const state = player.getPlayerState ? player.getPlayerState() : -1;
 
-      if (isPlaying) {
+      // If room is playing and participant is NOT locally paused
+      if (isPlaying && !isParticipantLocallyPaused) {
         if (state !== window.YT.PlayerState.PLAYING && state !== window.YT.PlayerState.BUFFERING && player.playVideo) {
           isInternalUpdateRef.current = true;
           player.playVideo();
           setTimeout(() => { isInternalUpdateRef.current = false; }, 600);
         }
       } else {
+        // Room is paused OR participant locally paused
         if ((state === window.YT.PlayerState.PLAYING || state === window.YT.PlayerState.BUFFERING) && player.pauseVideo) {
           isInternalUpdateRef.current = true;
           player.pauseVideo();
@@ -243,7 +279,7 @@ export default function VideoPlayer({
         }
       }
     } catch (err) {}
-  }, [isPlaying, isReady]);
+  }, [isPlaying, isParticipantLocallyPaused, isReady]);
 
   // Periodic local scrubber update for smooth timeline
   useEffect(() => {
@@ -258,7 +294,7 @@ export default function VideoPlayer({
           if (onDurationChange && typeof dur === "number" && dur > 0) onDurationChange(dur);
         }
       } catch (e) {}
-    }, 500);
+    }, 400);
 
     return () => clearInterval(interval);
   }, [isReady, onCurrentTimeChange, onDurationChange]);
@@ -273,38 +309,49 @@ export default function VideoPlayer({
       const curTime = player && player.getCurrentTime ? player.getCurrentTime() : 0;
 
       if (state === window.YT.PlayerState.PLAYING) {
-        setAutoplayBlocked(false);
+        setLocalPlayingState(true);
+      } else if (state === window.YT.PlayerState.PAUSED || state === window.YT.PlayerState.ENDED) {
+        setLocalPlayingState(false);
       }
 
       if (canControl) {
+        // Host / Mod controlling room
         if (state === window.YT.PlayerState.PLAYING) {
           onLocalPlay && onLocalPlay(curTime);
         } else if (state === window.YT.PlayerState.PAUSED) {
           onLocalPause && onLocalPause(curTime);
         }
-      } else {
-        // Participant cannot control room playback: enforce sync with room state
-        if (state === window.YT.PlayerState.PLAYING && !isPlaying && player?.pauseVideo) {
-          isInternalUpdateRef.current = true;
-          player.pauseVideo();
-          setTimeout(() => { isInternalUpdateRef.current = false; }, 300);
-        } else if (state === window.YT.PlayerState.PAUSED && isPlaying && player?.playVideo) {
-          isInternalUpdateRef.current = true;
-          player.playVideo();
-          setTimeout(() => { isInternalUpdateRef.current = false; }, 300);
-        }
       }
     } catch (e) {}
   };
 
-  const handleUnmuteAndJoin = () => {
-    try {
-      if (playerInstanceRef.current) {
-        if (playerInstanceRef.current.unMute) playerInstanceRef.current.unMute();
-        if (playerInstanceRef.current.playVideo) playerInstanceRef.current.playVideo();
+  // Main video overlay click action
+  const handleOverlayClick = () => {
+    // If audio is muted by autoplay policy, unmute immediately on click
+    if (isMutedByAutoplay) {
+      handleUnmute();
+    }
+
+    if (canControl) {
+      // Host / Moderator: toggles room-wide play/pause
+      try {
+        const cur = playerInstanceRef.current?.getCurrentTime?.() || 0;
+        if (isPlaying) {
+          onLocalPause && onLocalPause(cur);
+        } else {
+          onLocalPlay && onLocalPlay(cur);
+        }
+      } catch (e) {}
+    } else {
+      // Participant: local pause vs catch up to live host
+      if (localPlayingState && !isParticipantLocallyPaused) {
+        // Pause locally
+        onParticipantPause && onParticipantPause();
+      } else {
+        // Resume & automatically jump to live host time!
+        onParticipantPlay && onParticipantPlay();
       }
-    } catch (e) {}
-    setAutoplayBlocked(false);
+    }
   };
 
   return (
@@ -347,71 +394,115 @@ export default function VideoPlayer({
         />
       </div>
 
-      {/* Transparent Clickable Overlay for Host/Mod Play-Pause and Double-Click Fullscreen */}
+      {/* Transparent Clickable Overlay for Play/Pause and Fullscreen */}
       <div
-        onClick={() => {
-          if (!canControl) return;
-          try {
-            const cur = playerInstanceRef.current?.getCurrentTime?.() || 0;
-            if (isPlaying) {
-              onLocalPause && onLocalPause(cur);
-            } else {
-              onLocalPlay && onLocalPlay(cur);
-            }
-          } catch (e) {}
-        }}
+        onClick={handleOverlayClick}
         onDoubleClick={onToggleFullscreen}
-        title={canControl ? (isPlaying ? "Click to Pause (Double-click for Fullscreen)" : "Click to Play (Double-click for Fullscreen)") : "Double-click for Fullscreen"}
+        title={
+          canControl
+            ? isPlaying
+              ? "Click to Pause Room (Double-click Fullscreen)"
+              : "Click to Play Room (Double-click Fullscreen)"
+            : isParticipantLocallyPaused
+            ? "Click to Play & Catch Up Live to Host (Double-click Fullscreen)"
+            : "Click to Pause Video Locally (Double-click Fullscreen)"
+        }
         style={{
           position: "absolute",
           inset: 0,
-          cursor: canControl ? "pointer" : "default",
+          cursor: "pointer",
           zIndex: 10,
         }}
       />
 
-      {/* Autoplay / Click to Unmute & Sync Overlay */}
-      {autoplayBlocked && !playerError && (
+      {/* Participant Local Pause Indicator Badge */}
+      {!canControl && isParticipantLocallyPaused && !playerError && (
         <div
-          onClick={handleUnmuteAndJoin}
+          onClick={handleOverlayClick}
           style={{
             position: "absolute",
-            inset: 0,
-            background: "rgba(9, 13, 22, 0.85)",
-            backdropFilter: "blur(6px)",
+            top: "16px",
+            left: "16px",
+            background: "rgba(15, 23, 42, 0.85)",
+            backdropFilter: "blur(8px)",
+            border: "1px solid rgba(239, 68, 68, 0.4)",
+            borderRadius: "var(--radius-full)",
+            padding: "6px 14px",
             display: "flex",
-            flexDirection: "column",
             alignItems: "center",
-            justifyContent: "center",
+            gap: "8px",
+            zIndex: 20,
             cursor: "pointer",
-            zIndex: 25,
-            padding: "20px",
-            textAlign: "center",
+            boxShadow: "0 4px 15px rgba(0, 0, 0, 0.5)",
+            animation: "pulseDot 2.5s infinite",
+          }}
+        >
+          <Pause size={13} color="#f87171" fill="#f87171" />
+          <span style={{ fontSize: "12px", fontWeight: 600, color: "#fca5a5" }}>
+            Paused Locally &bull; Click to Sync Live with Host
+          </span>
+          <Zap size={13} color="#fbbf24" />
+        </div>
+      )}
+
+      {/* Live Synced Indicator Badge for Participant */}
+      {!canControl && !isParticipantLocallyPaused && isPlaying && !playerError && (
+        <div
+          style={{
+            position: "absolute",
+            top: "16px",
+            left: "16px",
+            background: "rgba(15, 23, 42, 0.75)",
+            backdropFilter: "blur(6px)",
+            border: "1px solid rgba(34, 197, 94, 0.3)",
+            borderRadius: "var(--radius-full)",
+            padding: "4px 10px",
+            display: "flex",
+            alignItems: "center",
+            gap: "6px",
+            zIndex: 15,
+            pointerEvents: "none",
           }}
         >
           <div
             style={{
-              width: "64px",
-              height: "64px",
+              width: "7px",
+              height: "7px",
               borderRadius: "50%",
-              background: "linear-gradient(135deg, #8b5cf6 0%, #ec4899 100%)",
-              display: "flex",
-              alignItems: "center",
-              justifyContent: "center",
-              color: "#ffffff",
-              boxShadow: "0 0 30px rgba(139, 92, 246, 0.5)",
-              marginBottom: "14px",
-              animation: "pulseDot 2s infinite",
+              background: "#22c55e",
+              boxShadow: "0 0 8px #22c55e",
             }}
-          >
-            <Play size={28} fill="#ffffff" style={{ marginLeft: "4px" }} />
-          </div>
-          <h3 style={{ fontSize: "18px", fontWeight: 700, marginBottom: "6px" }}>
-            Click to Join Live Stream
-          </h3>
-          <p style={{ fontSize: "13px", color: "var(--text-muted)", maxWidth: "340px", margin: 0 }}>
-            Browser requires a click to enable synchronized video & audio.
-          </p>
+          />
+          <span style={{ fontSize: "11px", fontWeight: 700, color: "#86efac", letterSpacing: "0.03em" }}>
+            LIVE SYNC
+          </span>
+        </div>
+      )}
+
+      {/* Floating Unmute Audio Pill (When browser autoplayed muted) */}
+      {isMutedByAutoplay && !playerError && (
+        <div
+          onClick={handleUnmute}
+          style={{
+            position: "absolute",
+            bottom: "16px",
+            left: "16px",
+            background: "linear-gradient(135deg, #8b5cf6 0%, #ec4899 100%)",
+            borderRadius: "var(--radius-full)",
+            padding: "8px 16px",
+            display: "flex",
+            alignItems: "center",
+            gap: "8px",
+            zIndex: 25,
+            cursor: "pointer",
+            boxShadow: "0 4px 20px rgba(139, 92, 246, 0.6)",
+            animation: "pulseDot 1.8s infinite",
+          }}
+        >
+          <Volume2 size={16} color="#ffffff" />
+          <span style={{ fontSize: "12px", fontWeight: 700, color: "#ffffff" }}>
+            Click to Unmute Audio 🔊
+          </span>
         </div>
       )}
 
