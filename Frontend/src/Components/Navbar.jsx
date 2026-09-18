@@ -98,7 +98,7 @@ export default function Navbar({
           <Play size={16} color="#ffffff" fill="#ffffff" />
         </div>
         <div className="navbar-brand-text-wrapper">
-          <div style={{ display: "flex", alignItems: "center", gap: "6px" }}>
+          <div className="navbar-title-row">
             <span className="navbar-brand-title">WatchParty</span>
             <span className="hide-on-mobile badge-sync-tag">SYNC</span>
           </div>
@@ -121,7 +121,7 @@ export default function Navbar({
               {copiedId ? (
                 <>
                   <Check size={12} color="#34d399" />
-                  <span className="nav-btn-label" style={{ color: "#34d399", fontWeight: 700 }}>ID Copied!</span>
+                  <span className="nav-btn-label nav-id-copied-text">ID Copied!</span>
                 </>
               ) : (
                 <>
@@ -156,7 +156,7 @@ export default function Navbar({
           <div className="navbar-user-group">
             {/* Live Indicator */}
             <div className="nav-live-badge">
-              <div className="pulse-dot" style={{ width: "6px", height: "6px" }} />
+              <div className="pulse-dot" />
               <span className="hide-on-mobile">LIVE</span>
             </div>
 
@@ -186,19 +186,9 @@ export default function Navbar({
           </div>
         </>
       ) : (
-        <div style={{ display: "flex", alignItems: "center", gap: "8px" }}>
-          <div
-            style={{
-              display: "flex",
-              alignItems: "center",
-              gap: "6px",
-              fontSize: "12px",
-              color: "var(--text-muted)",
-            }}
-          >
-            <Radio size={14} color="#10b981" />
-            <span>Socket.IO Ready</span>
-          </div>
+        <div className="nav-status-ready">
+          <Radio size={14} color="#10b981" />
+          <span>Socket.IO Ready</span>
         </div>
       )}
     </header>

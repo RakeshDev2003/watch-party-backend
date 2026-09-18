@@ -358,39 +358,16 @@ export default function VideoPlayer({
     <div
       id="main-video-player-container"
       ref={playerOuterRef}
-      style={{
-        position: "relative",
-        width: isFullscreen ? "100vw" : "100%",
-        height: isFullscreen ? "100vh" : "auto",
-        paddingTop: isFullscreen ? 0 : "56.25%", // 16:9 Aspect Ratio
-        background: "#000000",
-        borderRadius: isFullscreen ? 0 : "var(--radius-md)",
-        overflow: "hidden",
-        border: isFullscreen ? "none" : "1px solid var(--border-color)",
-        boxShadow: isFullscreen ? "none" : "0 20px 50px rgba(0, 0, 0, 0.6)",
-      }}
+      className={`video-player-container ${isFullscreen ? "video-player-fullscreen" : ""}`}
     >
       {/* Floating Emoji Reactions Overlay */}
       <EmojiReactions reactions={reactions} />
 
       {/* Embedded YouTube IFrame Container */}
-      <div
-        style={{
-          position: "absolute",
-          top: 0,
-          left: 0,
-          width: "100%",
-          height: "100%",
-          overflow: "hidden",
-        }}
-      >
+      <div className="video-iframe-wrapper">
         <div
           ref={containerWrapperRef}
-          style={{
-            width: "100%",
-            height: "100%",
-            pointerEvents: "none",
-          }}
+          className="video-iframe-inner"
         />
       </div>
 
@@ -398,6 +375,7 @@ export default function VideoPlayer({
       <div
         onClick={handleOverlayClick}
         onDoubleClick={onToggleFullscreen}
+        className="video-click-overlay"
         title={
           canControl
             ? isPlaying
@@ -407,38 +385,16 @@ export default function VideoPlayer({
             ? "Click to Play & Catch Up Live to Host (Double-click Fullscreen)"
             : "Click to Pause Video Locally (Double-click Fullscreen)"
         }
-        style={{
-          position: "absolute",
-          inset: 0,
-          cursor: "pointer",
-          zIndex: 10,
-        }}
       />
 
       {/* Participant Local Pause Indicator Badge */}
       {!canControl && isParticipantLocallyPaused && !playerError && (
         <div
           onClick={handleOverlayClick}
-          style={{
-            position: "absolute",
-            top: "16px",
-            left: "16px",
-            background: "rgba(15, 23, 42, 0.85)",
-            backdropFilter: "blur(8px)",
-            border: "1px solid rgba(239, 68, 68, 0.4)",
-            borderRadius: "var(--radius-full)",
-            padding: "6px 14px",
-            display: "flex",
-            alignItems: "center",
-            gap: "8px",
-            zIndex: 20,
-            cursor: "pointer",
-            boxShadow: "0 4px 15px rgba(0, 0, 0, 0.5)",
-            animation: "pulseDot 2.5s infinite",
-          }}
+          className="player-badge-local-pause"
         >
           <Pause size={13} color="#f87171" fill="#f87171" />
-          <span style={{ fontSize: "12px", fontWeight: 600, color: "#fca5a5" }}>
+          <span className="player-badge-local-pause-text">
             Paused Locally &bull; Click to Sync Live with Host
           </span>
           <Zap size={13} color="#fbbf24" />
@@ -447,33 +403,9 @@ export default function VideoPlayer({
 
       {/* Live Synced Indicator Badge for Participant */}
       {!canControl && !isParticipantLocallyPaused && isPlaying && !playerError && (
-        <div
-          style={{
-            position: "absolute",
-            top: "16px",
-            left: "16px",
-            background: "rgba(15, 23, 42, 0.75)",
-            backdropFilter: "blur(6px)",
-            border: "1px solid rgba(34, 197, 94, 0.3)",
-            borderRadius: "var(--radius-full)",
-            padding: "4px 10px",
-            display: "flex",
-            alignItems: "center",
-            gap: "6px",
-            zIndex: 15,
-            pointerEvents: "none",
-          }}
-        >
-          <div
-            style={{
-              width: "7px",
-              height: "7px",
-              borderRadius: "50%",
-              background: "#22c55e",
-              boxShadow: "0 0 8px #22c55e",
-            }}
-          />
-          <span style={{ fontSize: "11px", fontWeight: 700, color: "#86efac", letterSpacing: "0.03em" }}>
+        <div className="player-badge-live-sync">
+          <div className="player-badge-live-dot" />
+          <span className="player-badge-live-text">
             LIVE SYNC
           </span>
         </div>
@@ -483,24 +415,10 @@ export default function VideoPlayer({
       {isMutedByAutoplay && !playerError && (
         <div
           onClick={handleUnmute}
-          style={{
-            position: "absolute",
-            bottom: "16px",
-            left: "16px",
-            background: "linear-gradient(135deg, #8b5cf6 0%, #ec4899 100%)",
-            borderRadius: "var(--radius-full)",
-            padding: "8px 16px",
-            display: "flex",
-            alignItems: "center",
-            gap: "8px",
-            zIndex: 25,
-            cursor: "pointer",
-            boxShadow: "0 4px 20px rgba(139, 92, 246, 0.6)",
-            animation: "pulseDot 1.8s infinite",
-          }}
+          className="player-pill-unmute"
         >
           <Volume2 size={16} color="#ffffff" />
-          <span style={{ fontSize: "12px", fontWeight: 700, color: "#ffffff" }}>
+          <span className="player-pill-unmute-text">
             Click to Unmute Audio 🔊
           </span>
         </div>
@@ -508,65 +426,26 @@ export default function VideoPlayer({
 
       {/* Error Overlay */}
       {playerError && (
-        <div
-          style={{
-            position: "absolute",
-            top: 0,
-            left: 0,
-            width: "100%",
-            height: "100%",
-            background: "rgba(10, 15, 26, 0.92)",
-            backdropFilter: "blur(8px)",
-            display: "flex",
-            flexDirection: "column",
-            alignItems: "center",
-            justifyContent: "center",
-            padding: "24px",
-            textAlign: "center",
-            zIndex: 30,
-          }}
-        >
-          <div
-            style={{
-              width: "48px",
-              height: "48px",
-              borderRadius: "50%",
-              background: "rgba(239, 68, 68, 0.15)",
-              display: "flex",
-              alignItems: "center",
-              justifyContent: "center",
-              marginBottom: "12px",
-              color: "#f87171",
-              fontSize: "24px",
-            }}
-          >
+        <div className="player-error-overlay">
+          <div className="player-error-icon-box">
             ⚠️
           </div>
-          <h4 style={{ margin: "0 0 6px 0", color: "#f87171", fontSize: "16px" }}>
+          <h4 className="player-error-title">
             Video Embedding Restricted
           </h4>
-          <p style={{ margin: "0 0 16px 0", fontSize: "13px", color: "var(--text-muted)", maxWidth: "420px" }}>
+          <p className="player-error-desc">
             {playerError}
           </p>
           {canControl && onSelectNewVideo && (
             <button
               onClick={() => onSelectNewVideo(DEFAULT_VIDEO_ID)}
-              className="btn btn-primary"
-              style={{
-                display: "inline-flex",
-                alignItems: "center",
-                gap: "8px",
-                padding: "8px 18px",
-                fontSize: "13px",
-                borderRadius: "var(--radius-full)",
-                marginBottom: "12px",
-              }}
+              className="btn btn-primary player-error-action-btn"
             >
               <RefreshCw size={14} />
               <span>Load Verified Default Video</span>
             </button>
           )}
-          <p style={{ margin: 0, fontSize: "12px", color: "var(--primary-light)" }}>
+          <p className="player-error-tip">
             💡 Tip: Choose another video from the presets below or paste any YouTube video link.
           </p>
         </div>

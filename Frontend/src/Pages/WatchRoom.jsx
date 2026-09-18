@@ -453,54 +453,17 @@ export default function WatchRoom({
 
       {/* Kicked Modal Overlay */}
       {kickedModal && (
-        <div
-          style={{
-            position: "fixed",
-            inset: 0,
-            background: "rgba(5, 8, 14, 0.9)",
-            backdropFilter: "blur(12px)",
-            display: "flex",
-            alignItems: "center",
-            justifyContent: "center",
-            zIndex: 9999,
-            padding: "20px",
-          }}
-        >
-          <div
-            className="glass-panel"
-            style={{
-              maxWidth: "440px",
-              width: "100%",
-              padding: "32px",
-              textAlign: "center",
-              background: "#0e1526",
-              border: "1px solid rgba(239, 68, 68, 0.4)",
-              boxShadow: "0 25px 50px -12px rgba(239, 68, 68, 0.25)",
-              animation: "slideDown 0.3s cubic-bezier(0.16, 1, 0.3, 1)",
-            }}
-          >
-            <div
-              style={{
-                width: "60px",
-                height: "60px",
-                borderRadius: "50%",
-                background: "rgba(239, 68, 68, 0.15)",
-                border: "1px solid rgba(239, 68, 68, 0.3)",
-                display: "flex",
-                alignItems: "center",
-                justifyContent: "center",
-                color: "#ef4444",
-                margin: "0 auto 20px auto",
-              }}
-            >
+        <div className="modal-backdrop modal-backdrop-heavy">
+          <div className="glass-panel kicked-modal-card">
+            <div className="kicked-modal-icon">
               <UserX size={32} />
             </div>
 
-            <h2 style={{ fontSize: "22px", fontWeight: 800, marginBottom: "10px" }}>
+            <h2 className="kicked-modal-title">
               Removed from Party
             </h2>
 
-            <p style={{ fontSize: "14px", color: "var(--text-muted)", lineHeight: 1.6, marginBottom: "24px" }}>
+            <p className="kicked-modal-text">
               {kickedModal.message}
             </p>
 
@@ -509,13 +472,7 @@ export default function WatchRoom({
                 setKickedModal(null);
                 onLeave();
               }}
-              className="btn btn-primary"
-              style={{
-                width: "100%",
-                padding: "12px",
-                fontSize: "14px",
-                background: "linear-gradient(135deg, #ef4444 0%, #b91c1c 100%)",
-              }}
+              className="btn btn-primary kicked-btn-home"
             >
               <HomeIcon size={16} />
               <span>Return to Home</span>
@@ -585,83 +542,36 @@ export default function WatchRoom({
           {/* Right Column: Tabbed Sidebar (Chat & Participants) */}
           <div className="glass-panel watch-sidebar">
             {/* Quick Participant Preview Bar */}
-            <div
-              style={{
-                padding: "10px 14px",
-                borderBottom: "1px solid var(--border-color)",
-                background: "rgba(0, 0, 0, 0.35)",
-                display: "flex",
-                alignItems: "center",
-                justifyContent: "space-between",
-              }}
-            >
-              <div style={{ display: "flex", alignItems: "center", gap: "8px" }}>
+            <div className="sidebar-preview-bar">
+              <div className="sidebar-party-info">
                 <Users size={14} color="#c084fc" />
-                <span style={{ fontSize: "12px", fontWeight: 600, color: "var(--text-muted)" }}>
+                <span className="sidebar-party-label">
                   In Party ({displayParticipants.length})
                 </span>
               </div>
 
               {/* Mini Avatars preview */}
-              <div style={{ display: "flex", alignItems: "center", gap: "-6px" }}>
-                {displayParticipants.slice(0, 5).map((p, idx) => (
-                  <div
-                    key={p.userId || p.socketId || idx}
-                    style={{
-                      width: "24px",
-                      height: "24px",
-                      borderRadius: "50%",
-                      background: p.role === "Host" ? "#fbbf24" : p.role === "Moderator" ? "#c084fc" : "#64748b",
-                      color: "#000000",
-                      display: "flex",
-                      alignItems: "center",
-                      justifyContent: "center",
-                      fontSize: "11px",
-                      fontWeight: 700,
-                      border: "2px solid #090d16",
-                      marginLeft: idx > 0 ? "-6px" : "0",
-                    }}
-                    title={`${p.username} (${p.role})`}
-                  >
-                    {(p.username || "U").charAt(0).toUpperCase()}
-                  </div>
-                ))}
+              <div className="sidebar-avatars-preview">
+                {displayParticipants.slice(0, 5).map((p, idx) => {
+                  const roleClass = p.role === "Host" ? "role-host" : p.role === "Moderator" ? "role-mod" : "role-participant";
+                  return (
+                    <div
+                      key={p.userId || p.socketId || idx}
+                      className={`sidebar-avatar-mini ${roleClass} ${idx > 0 ? "avatar-overlap" : ""}`}
+                      title={`${p.username} (${p.role})`}
+                    >
+                      {(p.username || "U").charAt(0).toUpperCase()}
+                    </div>
+                  );
+                })}
               </div>
             </div>
 
             {/* Sidebar Navigation Tabs */}
-            <div
-              style={{
-                display: "grid",
-                gridTemplateColumns: "1fr 1fr",
-                borderBottom: "1px solid var(--border-color)",
-                background: "rgba(0, 0, 0, 0.2)",
-              }}
-            >
+            <div className="sidebar-nav-tabs">
               <button
                 onClick={() => setActiveTab("chat")}
-                style={{
-                  display: "flex",
-                  alignItems: "center",
-                  justifyContent: "center",
-                  gap: "6px",
-                  padding: "12px",
-                  border: "none",
-                  borderBottom:
-                    activeTab === "chat"
-                      ? "2px solid var(--primary)"
-                      : "2px solid transparent",
-                  background:
-                    activeTab === "chat"
-                      ? "rgba(139, 92, 246, 0.08)"
-                      : "transparent",
-                  color:
-                    activeTab === "chat" ? "#ffffff" : "var(--text-muted)",
-                  fontSize: "13px",
-                  fontWeight: 600,
-                  cursor: "pointer",
-                  transition: "all 0.2s ease",
-                }}
+                className={`sidebar-nav-tab-btn ${activeTab === "chat" ? "active" : ""}`}
               >
                 <MessageSquare size={14} />
                 <span>Chat</span>
@@ -669,30 +579,7 @@ export default function WatchRoom({
 
               <button
                 onClick={() => setActiveTab("participants")}
-                style={{
-                  display: "flex",
-                  alignItems: "center",
-                  justifyContent: "center",
-                  gap: "6px",
-                  padding: "12px",
-                  border: "none",
-                  borderBottom:
-                    activeTab === "participants"
-                      ? "2px solid var(--primary)"
-                      : "2px solid transparent",
-                  background:
-                    activeTab === "participants"
-                      ? "rgba(139, 92, 246, 0.08)"
-                      : "transparent",
-                  color:
-                    activeTab === "participants"
-                      ? "#ffffff"
-                      : "var(--text-muted)",
-                  fontSize: "13px",
-                  fontWeight: 600,
-                  cursor: "pointer",
-                  transition: "all 0.2s ease",
-                }}
+                className={`sidebar-nav-tab-btn ${activeTab === "participants" ? "active" : ""}`}
               >
                 <Users size={14} />
                 <span>People ({displayParticipants.length})</span>
@@ -700,7 +587,7 @@ export default function WatchRoom({
             </div>
 
             {/* Active Tab Panel */}
-            <div style={{ flex: 1, minHeight: 0 }}>
+            <div className="sidebar-content-body">
               {activeTab === "chat" ? (
                 <ChatBox
                   messages={chatMessages}

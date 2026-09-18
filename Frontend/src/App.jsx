@@ -15,7 +15,7 @@ function App() {
     if (roomParam) {
       setInitialRoomId(roomParam);
     }
-  }, []);
+  }, []); 
 
   const handleJoinRoom = ({ roomId, username, roomTitle = "", initialVideoId = "", isHost = false }) => {
     // Update browser URL without reload
@@ -52,16 +52,9 @@ function App() {
   }
 
   return (
-    <div
-      className="app-container"
-      style={{
-        display: "flex",
-        flexDirection: "column",
-        minHeight: "100vh",
-      }}
-    >
+    <div className="app-container">
       <Navbar />
-      <main className="main-content" style={{ flex: 1 }}>
+      <main className="main-content">
         <Home
           onJoinRoom={handleJoinRoom}
           initialRoomId={initialRoomId}

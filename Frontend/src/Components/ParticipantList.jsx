@@ -148,44 +148,18 @@ export default function ParticipantList({
   };
 
   return (
-    <div style={{ display: "flex", flexDirection: "column", height: "100%", position: "relative" }}>
+    <div className="participants-container">
       {/* Header */}
-      <div
-        style={{
-          padding: "16px",
-          borderBottom: "1px solid var(--border-color)",
-          display: "flex",
-          alignItems: "center",
-          justifyContent: "space-between",
-        }}
-      >
-        <div style={{ display: "flex", alignItems: "center", gap: "8px" }}>
-          <span style={{ fontSize: "14px", fontWeight: 700 }}>Participants</span>
-          <span
-            style={{
-              padding: "2px 8px",
-              background: "rgba(255, 255, 255, 0.08)",
-              borderRadius: "var(--radius-full)",
-              fontSize: "12px",
-              color: "var(--text-muted)",
-              fontWeight: 600,
-            }}
-          >
+      <div className="participants-header">
+        <div className="participants-header-left">
+          <span className="participants-header-title">Participants</span>
+          <span className="participants-header-count">
             {participants.length}
           </span>
         </div>
 
         {isHost && (
-          <span
-            style={{
-              fontSize: "11px",
-              color: "#fbbf24",
-              display: "flex",
-              alignItems: "center",
-              gap: "4px",
-              fontWeight: 600,
-            }}
-          >
+          <span className="participants-host-badge">
             <Crown size={12} />
             <span>Host Controls Active</span>
           </span>
@@ -194,55 +168,25 @@ export default function ParticipantList({
 
       {/* Invite Friends / Share Link Banner */}
       {roomId && (
-        <div
-          style={{
-            padding: "12px 16px",
-            background: "rgba(139, 92, 246, 0.08)",
-            borderBottom: "1px solid rgba(139, 92, 246, 0.2)",
-            display: "flex",
-            alignItems: "center",
-            justifyContent: "space-between",
-            gap: "10px",
-          }}
-        >
-          <div style={{ display: "flex", alignItems: "center", gap: "8px" }}>
-            <div
-              style={{
-                width: "28px",
-                height: "28px",
-                borderRadius: "8px",
-                background: "rgba(139, 92, 246, 0.2)",
-                display: "flex",
-                alignItems: "center",
-                justifyContent: "center",
-                color: "#c084fc",
-              }}
-            >
+        <div className="participants-invite-banner">
+          <div className="invite-banner-left">
+            <div className="invite-banner-icon-box">
               <Link2 size={15} />
             </div>
             <div>
-              <p style={{ fontSize: "12px", fontWeight: 600, margin: 0, color: "#f1f5f9" }}>
+              <p className="invite-banner-title">
                 Invite Friends
               </p>
-              <p style={{ fontSize: "11px", color: "var(--text-muted)", margin: 0 }}>
+              <p className="invite-banner-subtitle">
                 Share this party's link
               </p>
             </div>
           </div>
 
-          <div style={{ display: "flex", alignItems: "center", gap: "6px" }}>
+          <div className="invite-banner-actions">
             <button
               onClick={handleCopyRoomId}
-              className="btn btn-secondary"
-              style={{
-                padding: "6px 10px",
-                fontSize: "12px",
-                borderRadius: "var(--radius-full)",
-                gap: "5px",
-                background: copiedId ? "rgba(16, 185, 129, 0.15)" : undefined,
-                borderColor: copiedId ? "rgba(16, 185, 129, 0.4)" : undefined,
-                color: copiedId ? "#34d399" : undefined,
-              }}
+              className={`btn btn-secondary invite-btn-copy-id ${copiedId ? "copied" : ""}`}
               title="Copy Room ID code only"
             >
               {copiedId ? (
@@ -260,13 +204,7 @@ export default function ParticipantList({
 
             <button
               onClick={handleShareInvite}
-              className="btn btn-primary"
-              style={{
-                padding: "6px 12px",
-                fontSize: "12px",
-                borderRadius: "var(--radius-full)",
-                gap: "6px",
-              }}
+              className="btn btn-primary invite-btn-share"
               title="Copy or share party invite link"
             >
               {copiedLink ? (
@@ -286,17 +224,7 @@ export default function ParticipantList({
       )}
 
       {/* Participants Scroll List */}
-      <div
-        ref={menuRef}
-        style={{
-          flex: 1,
-          overflowY: "auto",
-          padding: "12px",
-          display: "flex",
-          flexDirection: "column",
-          gap: "8px",
-        }}
-      >
+      <div ref={menuRef} className="participants-list-scroll">
         {participants.map((p) => {
           const isSelf = p.userId === currentUserId || p.socketId === currentUserId;
           const isParticipantHost = p.role === "Host";
@@ -306,76 +234,29 @@ export default function ParticipantList({
           return (
             <div
               key={p.userId || p.socketId}
-              style={{
-                display: "flex",
-                alignItems: "center",
-                justifyContent: "space-between",
-                padding: "10px 12px",
-                borderRadius: "var(--radius-sm)",
-                background: isSelf
-                  ? "rgba(139, 92, 246, 0.08)"
-                  : isParticipantHost
-                  ? "rgba(245, 158, 11, 0.05)"
-                  : "rgba(255, 255, 255, 0.02)",
-                border: isSelf
-                  ? "1px solid rgba(139, 92, 246, 0.25)"
-                  : isParticipantHost
-                  ? "1px solid rgba(245, 158, 11, 0.2)"
-                  : "1px solid var(--border-color)",
-                position: "relative",
-                transition: "all 0.2s ease",
-              }}
+              className={`participant-item-row ${isSelf ? "is-self" : isParticipantHost ? "is-host" : ""}`}
             >
               {/* User Avatar + Name */}
-              <div style={{ display: "flex", alignItems: "center", gap: "10px", minWidth: 0 }}>
+              <div className="participant-user-info">
                 <div
-                  style={{
-                    width: "34px",
-                    height: "34px",
-                    borderRadius: "50%",
-                    background: getAvatarColor(p.username),
-                    display: "flex",
-                    alignItems: "center",
-                    justifyContent: "center",
-                    fontSize: "13px",
-                    fontWeight: 700,
-                    color: "#ffffff",
-                    boxShadow: "0 2px 6px rgba(0,0,0,0.3)",
-                    flexShrink: 0,
-                  }}
+                  className="participant-avatar-box"
+                  style={{ background: getAvatarColor(p.username) }}
                 >
                   {(p.username || "U").charAt(0).toUpperCase()}
                 </div>
 
-                <div style={{ minWidth: 0 }}>
-                  <div style={{ display: "flex", alignItems: "center", gap: "6px" }}>
-                    <span
-                      style={{
-                        fontSize: "13px",
-                        fontWeight: 600,
-                        color: "var(--text-main)",
-                        overflow: "hidden",
-                        textOverflow: "ellipsis",
-                        whiteSpace: "nowrap",
-                        maxWidth: "140px",
-                      }}
-                      title={p.username}
-                    >
+                <div className="participant-name-container">
+                  <div className="participant-name-row">
+                    <span className="participant-name-text" title={p.username}>
                       {p.username}
                     </span>
                     {isSelf && (
-                      <span
-                        style={{
-                          fontSize: "10px",
-                          color: "#c084fc",
-                          fontWeight: 700,
-                        }}
-                      >
+                      <span className="participant-self-tag">
                         (You)
                       </span>
                     )}
                   </div>
-                  <div style={{ marginTop: "2px" }}>
+                  <div className="participant-badge-container">
                     <span className={`badge ${getRoleBadgeClass(p.role)}`}>
                       {getRoleIcon(p.role)}
                       <span>{p.role}</span>
@@ -386,19 +267,12 @@ export default function ParticipantList({
 
               {/* Host Actions for other participants */}
               {isHost && !isSelf && (
-                <div style={{ position: "relative" }}>
-                  <div style={{ display: "flex", alignItems: "center", gap: "4px" }}>
+                <div className="participant-actions-group">
+                  <div className="participant-host-actions">
                     {/* Make Host Quick Action */}
                     <button
                       onClick={() => setModalConfig({ type: "transfer", targetUser: p })}
-                      className="btn-icon"
-                      style={{
-                        padding: "5px 7px",
-                        fontSize: "11px",
-                        background: "rgba(245, 158, 11, 0.1)",
-                        borderColor: "rgba(245, 158, 11, 0.25)",
-                        color: "#fbbf24",
-                      }}
+                      className="btn-icon action-btn-make-host"
                       title={`Make ${p.username} the Room Host`}
                     >
                       <Crown size={13} />
@@ -407,14 +281,7 @@ export default function ParticipantList({
                     {/* Remove Quick Action */}
                     <button
                       onClick={() => setModalConfig({ type: "kick", targetUser: p })}
-                      className="btn-icon"
-                      style={{
-                        padding: "5px 7px",
-                        fontSize: "11px",
-                        background: "rgba(239, 68, 68, 0.1)",
-                        borderColor: "rgba(239, 68, 68, 0.25)",
-                        color: "#f87171",
-                      }}
+                      className="btn-icon action-btn-kick-user"
                       title={`Remove ${p.username} from room`}
                     >
                       <UserX size={13} />
@@ -425,8 +292,7 @@ export default function ParticipantList({
                       onClick={() =>
                         setActiveMenuUserId(isMenuOpen ? null : p.userId || p.socketId)
                       }
-                      className="btn-icon"
-                      style={{ padding: "6px" }}
+                      className="btn-icon action-btn-more-menu"
                       title="Manage participant options"
                     >
                       <MoreVertical size={14} />
@@ -435,39 +301,14 @@ export default function ParticipantList({
 
                   {/* Dropdown Menu */}
                   {isMenuOpen && (
-                    <div
-                      style={{
-                        position: "absolute",
-                        right: 0,
-                        top: "100%",
-                        marginTop: "6px",
-                        background: "#0e1526",
-                        border: "1px solid var(--border-glow)",
-                        borderRadius: "var(--radius-sm)",
-                        padding: "6px",
-                        minWidth: "190px",
-                        boxShadow: "0 10px 30px rgba(0,0,0,0.8)",
-                        zIndex: 60,
-                        display: "flex",
-                        flexDirection: "column",
-                        gap: "4px",
-                      }}
-                    >
+                    <div className="participant-dropdown-menu">
                       {/* Transfer Host */}
                       <button
                         onClick={() => {
                           setModalConfig({ type: "transfer", targetUser: p });
                           setActiveMenuUserId(null);
                         }}
-                        className="btn-secondary"
-                        style={{
-                          width: "100%",
-                          justifyContent: "flex-start",
-                          padding: "7px 10px",
-                          fontSize: "12px",
-                          color: "#fbbf24",
-                          borderColor: "rgba(245, 158, 11, 0.3)",
-                        }}
+                        className="btn-secondary menu-item-btn menu-item-btn-host"
                       >
                         <Crown size={14} color="#fbbf24" />
                         <span>Make Room Host</span>
@@ -480,13 +321,7 @@ export default function ParticipantList({
                             onAssignRole(p.userId || p.socketId, "Participant");
                             setActiveMenuUserId(null);
                           }}
-                          className="btn-secondary"
-                          style={{
-                            width: "100%",
-                            justifyContent: "flex-start",
-                            padding: "7px 10px",
-                            fontSize: "12px",
-                          }}
+                          className="btn-secondary menu-item-btn"
                         >
                           <User size={14} color="#94a3b8" />
                           <span>Demote to Participant</span>
@@ -497,13 +332,7 @@ export default function ParticipantList({
                             onAssignRole(p.userId || p.socketId, "Moderator");
                             setActiveMenuUserId(null);
                           }}
-                          className="btn-secondary"
-                          style={{
-                            width: "100%",
-                            justifyContent: "flex-start",
-                            padding: "7px 10px",
-                            fontSize: "12px",
-                          }}
+                          className="btn-secondary menu-item-btn"
                         >
                           <ShieldCheck size={14} color="#c084fc" />
                           <span>Promote to Moderator</span>
@@ -516,13 +345,7 @@ export default function ParticipantList({
                           setModalConfig({ type: "kick", targetUser: p });
                           setActiveMenuUserId(null);
                         }}
-                        className="btn-danger"
-                        style={{
-                          width: "100%",
-                          justifyContent: "flex-start",
-                          padding: "7px 10px",
-                          fontSize: "12px",
-                        }}
+                        className="btn-danger menu-item-btn"
                       >
                         <UserX size={14} color="#ef4444" />
                         <span>Remove Participant</span>
@@ -538,84 +361,36 @@ export default function ParticipantList({
 
       {/* Confirmation Modal */}
       {modalConfig && (
-        <div
-          style={{
-            position: "fixed",
-            inset: 0,
-            background: "rgba(0, 0, 0, 0.75)",
-            backdropFilter: "blur(6px)",
-            display: "flex",
-            alignItems: "center",
-            justifyContent: "center",
-            zIndex: 1000,
-            padding: "16px",
-          }}
-          onClick={() => setModalConfig(null)}
-        >
-          <div
-            className="glass-panel"
-            style={{
-              maxWidth: "420px",
-              width: "100%",
-              padding: "24px",
-              background: "#0e1526",
-              border: "1px solid var(--border-glow)",
-              boxShadow: "0 20px 50px rgba(0,0,0,0.8)",
-              animation: "slideDown 0.2s ease",
-            }}
-            onClick={(e) => e.stopPropagation()}
-          >
-            <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: "16px" }}>
-              <div style={{ display: "flex", alignItems: "center", gap: "10px" }}>
+        <div className="modal-backdrop" onClick={() => setModalConfig(null)}>
+          <div className="glass-panel modal-card" onClick={(e) => e.stopPropagation()}>
+            <div className="modal-header-row">
+              <div className="modal-header-left">
                 {modalConfig.type === "transfer" ? (
-                  <div
-                    style={{
-                      width: "36px",
-                      height: "36px",
-                      borderRadius: "10px",
-                      background: "rgba(245, 158, 11, 0.15)",
-                      display: "flex",
-                      alignItems: "center",
-                      justifyContent: "center",
-                      color: "#fbbf24",
-                    }}
-                  >
+                  <div className="modal-icon-badge transfer">
                     <Crown size={20} />
                   </div>
                 ) : (
-                  <div
-                    style={{
-                      width: "36px",
-                      height: "36px",
-                      borderRadius: "10px",
-                      background: "rgba(239, 68, 68, 0.15)",
-                      display: "flex",
-                      alignItems: "center",
-                      justifyContent: "center",
-                      color: "#ef4444",
-                    }}
-                  >
+                  <div className="modal-icon-badge danger">
                     <UserX size={20} />
                   </div>
                 )}
-                <h3 style={{ fontSize: "17px", fontWeight: 700 }}>
+                <h3 className="modal-title">
                   {modalConfig.type === "transfer" ? "Transfer Host Role" : "Remove Participant"}
                 </h3>
               </div>
               <button
                 onClick={() => setModalConfig(null)}
                 className="btn-icon"
-                style={{ padding: "6px" }}
               >
                 <X size={16} />
               </button>
             </div>
 
-            <p style={{ fontSize: "14px", color: "var(--text-muted)", lineHeight: 1.5, marginBottom: "20px" }}>
+            <p className="modal-body-text">
               {modalConfig.type === "transfer" ? (
                 <>
                   Are you sure you want to transfer the <strong>Host</strong> role to{" "}
-                  <span style={{ color: "#fbbf24", fontWeight: 700 }}>
+                  <span className="modal-target-username transfer">
                     {modalConfig.targetUser?.username}
                   </span>
                   ? They will receive full control over room management, and you will become a Moderator.
@@ -623,7 +398,7 @@ export default function ParticipantList({
               ) : (
                 <>
                   Are you sure you want to remove{" "}
-                  <span style={{ color: "#f87171", fontWeight: 700 }}>
+                  <span className="modal-target-username danger">
                     {modalConfig.targetUser?.username}
                   </span>{" "}
                   from this watch party? They will be immediately disconnected.
@@ -631,23 +406,17 @@ export default function ParticipantList({
               )}
             </p>
 
-            <div style={{ display: "flex", gap: "10px", justifyContent: "flex-end" }}>
+            <div className="modal-actions-row">
               <button
                 onClick={() => setModalConfig(null)}
-                className="btn btn-secondary"
-                style={{ padding: "8px 16px", fontSize: "13px" }}
+                className="btn btn-secondary modal-btn-cancel"
               >
                 Cancel
               </button>
               {modalConfig.type === "transfer" ? (
                 <button
                   onClick={handleConfirmModalAction}
-                  className="btn btn-primary"
-                  style={{
-                    padding: "8px 18px",
-                    fontSize: "13px",
-                    background: "linear-gradient(135deg, #f59e0b 0%, #d97706 100%)",
-                  }}
+                  className="btn btn-primary modal-btn-confirm-transfer"
                 >
                   <Crown size={14} />
                   <span>Transfer Host 👑</span>
@@ -655,8 +424,7 @@ export default function ParticipantList({
               ) : (
                 <button
                   onClick={handleConfirmModalAction}
-                  className="btn btn-danger"
-                  style={{ padding: "8px 18px", fontSize: "13px" }}
+                  className="btn btn-danger modal-btn-confirm-kick"
                 >
                   <UserX size={14} />
                   <span>Remove User 🚫</span>

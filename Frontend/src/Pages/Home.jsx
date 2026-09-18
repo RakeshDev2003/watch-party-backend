@@ -155,92 +155,29 @@ export default function Home({ onJoinRoom, initialRoomId = "" }) {
   };
 
   return (
-    <div style={{ maxWidth: "1100px", margin: "0 auto", padding: "clamp(20px, 4vw, 40px) clamp(10px, 3vw, 20px)" }}>
+    <div className="home-container">
       {/* Hero Section */}
-      <div style={{ textAlign: "center", marginBottom: "32px" }}>
-        <div
-          style={{
-            display: "inline-flex",
-            alignItems: "center",
-            gap: "8px",
-            padding: "6px 16px",
-            borderRadius: "var(--radius-full)",
-            background: "rgba(139, 92, 246, 0.12)",
-            border: "1px solid rgba(139, 92, 246, 0.25)",
-            color: "#c084fc",
-            fontSize: "13px",
-            fontWeight: 600,
-            marginBottom: "16px",
-          }}
-        >
+      <div className="home-hero">
+        <div className="hero-tag-pill">
           <Sparkles size={14} />
           <span>Real-Time Synchronized Streaming</span>
         </div>
 
-        <h1
-          style={{
-            fontSize: "clamp(26px, 5.5vw, 54px)",
-            fontWeight: 800,
-            lineHeight: 1.18,
-            marginBottom: "14px",
-            background: "linear-gradient(135deg, #ffffff 30%, #a855f7 100%)",
-            WebkitBackgroundClip: "text",
-            WebkitTextFillColor: "transparent",
-          }}
-        >
+        <h1 className="hero-title">
           Watch YouTube Together <br /> In Perfect Real-Time Sync.
         </h1>
-        <p
-          style={{
-            fontSize: "clamp(14px, 2vw, 16px)",
-            color: "var(--text-muted)",
-            maxWidth: "600px",
-            margin: "0 auto",
-          }}
-        >
+        <p className="hero-desc">
           Create a room, invite your friends with a single link, and enjoy synchronized playback, role-based controls, and live chat.
         </p>
       </div>
 
       {/* Main Tabs Card */}
-      <div
-        className="glass-panel"
-        style={{
-          maxWidth: "560px",
-          margin: "0 auto",
-          padding: "clamp(20px, 4vw, 32px)",
-          boxShadow: "var(--shadow-glow)",
-        }}
-      >
+      <div className="glass-panel home-card">
         {/* Tab Toggle */}
-        <div
-          style={{
-            display: "grid",
-            gridTemplateColumns: "1fr 1fr",
-            gap: "6px",
-            background: "rgba(0, 0, 0, 0.3)",
-            padding: "4px",
-            borderRadius: "var(--radius-md)",
-            marginBottom: "24px",
-          }}
-        >
+        <div className="tab-toggle-container">
           <button
             onClick={() => { setTab("create"); setErrorMessage(""); }}
-            style={{
-              display: "flex",
-              alignItems: "center",
-              justifyContent: "center",
-              gap: "8px",
-              padding: "10px",
-              borderRadius: "var(--radius-sm)",
-              border: "none",
-              fontSize: "14px",
-              fontWeight: 600,
-              cursor: "pointer",
-              transition: "all 0.2s ease",
-              background: tab === "create" ? "var(--primary)" : "transparent",
-              color: tab === "create" ? "#ffffff" : "var(--text-muted)",
-            }}
+            className={`tab-btn ${tab === "create" ? "active" : ""}`}
           >
             <PlusCircle size={16} />
             <span>Create Room</span>
@@ -248,21 +185,7 @@ export default function Home({ onJoinRoom, initialRoomId = "" }) {
 
           <button
             onClick={() => { setTab("join"); setErrorMessage(""); }}
-            style={{
-              display: "flex",
-              alignItems: "center",
-              justifyContent: "center",
-              gap: "8px",
-              padding: "10px",
-              borderRadius: "var(--radius-sm)",
-              border: "none",
-              fontSize: "14px",
-              fontWeight: 600,
-              cursor: "pointer",
-              transition: "all 0.2s ease",
-              background: tab === "join" ? "var(--primary)" : "transparent",
-              color: tab === "join" ? "#ffffff" : "var(--text-muted)",
-            }}
+            className={`tab-btn ${tab === "join" ? "active" : ""}`}
           >
             <LogIn size={16} />
             <span>Join Room</span>
@@ -271,17 +194,7 @@ export default function Home({ onJoinRoom, initialRoomId = "" }) {
 
         {/* Error Alert */}
         {errorMessage && (
-          <div
-            style={{
-              padding: "10px 14px",
-              borderRadius: "var(--radius-sm)",
-              background: "rgba(239, 68, 68, 0.15)",
-              border: "1px solid rgba(239, 68, 68, 0.3)",
-              color: "#fca5a5",
-              fontSize: "13px",
-              marginBottom: "16px",
-            }}
-          >
+          <div className="error-alert">
             {errorMessage}
           </div>
         )}
@@ -289,17 +202,10 @@ export default function Home({ onJoinRoom, initialRoomId = "" }) {
         {/* Create Room Form */}
         {tab === "create" ? (
           <form onSubmit={handleCreateSubmit}>
-            <div style={{ display: "flex", flexDirection: "column", gap: "16px" }}>
+            <div className="home-form-stack">
               <div>
-                <label
-                  style={{
-                    display: "block",
-                    fontSize: "13px",
-                    fontWeight: 600,
-                    marginBottom: "6px",
-                  }}
-                >
-                  Your Display Name <span style={{ color: "var(--primary)" }}>*</span>
+                <label className="form-label">
+                  Your Display Name <span className="form-required-star">*</span>
                 </label>
                 <input
                   type="text"
@@ -312,14 +218,7 @@ export default function Home({ onJoinRoom, initialRoomId = "" }) {
               </div>
 
               <div>
-                <label
-                  style={{
-                    display: "block",
-                    fontSize: "13px",
-                    fontWeight: 600,
-                    marginBottom: "6px",
-                  }}
-                >
+                <label className="form-label">
                   Room Title (Optional)
                 </label>
                 <input
@@ -332,14 +231,7 @@ export default function Home({ onJoinRoom, initialRoomId = "" }) {
               </div>
 
               <div>
-                <label
-                  style={{
-                    display: "block",
-                    fontSize: "13px",
-                    fontWeight: 600,
-                    marginBottom: "6px",
-                  }}
-                >
+                <label className="form-label">
                   Starting YouTube URL / Video (Optional)
                 </label>
                 <input
@@ -353,14 +245,8 @@ export default function Home({ onJoinRoom, initialRoomId = "" }) {
 
               <button
                 type="submit"
-                className="btn btn-primary"
+                className="btn btn-primary home-btn-submit"
                 disabled={isCreating}
-                style={{
-                  padding: "14px",
-                  fontSize: "15px",
-                  width: "100%",
-                  marginTop: "8px",
-                }}
               >
                 <span>{isCreating ? "Creating Room..." : "Create Room & Become Host 👑"}</span>
                 <ArrowRight size={16} />
@@ -370,18 +256,11 @@ export default function Home({ onJoinRoom, initialRoomId = "" }) {
         ) : (
           /* Join Room Form */
           <form onSubmit={handleJoinSubmit}>
-            <div style={{ display: "flex", flexDirection: "column", gap: "16px" }}>
+            <div className="home-form-stack">
               {/* 1. Display Name First */}
               <div>
-                <label
-                  style={{
-                    display: "block",
-                    fontSize: "13px",
-                    fontWeight: 600,
-                    marginBottom: "6px",
-                  }}
-                >
-                  Your Display Name <span style={{ color: "var(--primary)" }}>*</span>
+                <label className="form-label">
+                  Your Display Name <span className="form-required-star">*</span>
                 </label>
                 <input
                   type="text"
@@ -395,15 +274,8 @@ export default function Home({ onJoinRoom, initialRoomId = "" }) {
 
               {/* 2. Room Code or Invite Link Second */}
               <div>
-                <label
-                  style={{
-                    display: "block",
-                    fontSize: "13px",
-                    fontWeight: 600,
-                    marginBottom: "6px",
-                  }}
-                >
-                  Room Code or Invite Link <span style={{ color: "var(--primary)" }}>*</span>
+                <label className="form-label">
+                  Room Code or Invite Link <span className="form-required-star">*</span>
                 </label>
                 <input
                   type="text"
@@ -417,14 +289,8 @@ export default function Home({ onJoinRoom, initialRoomId = "" }) {
 
               <button
                 type="submit"
-                className="btn btn-primary"
+                className="btn btn-primary home-btn-submit"
                 disabled={isJoining}
-                style={{
-                  padding: "14px",
-                  fontSize: "15px",
-                  width: "100%",
-                  marginTop: "8px",
-                }}
               >
                 <span>Join Watch Party</span>
                 <ArrowRight size={16} />
@@ -435,30 +301,12 @@ export default function Home({ onJoinRoom, initialRoomId = "" }) {
 
         {/* Recent Rooms Quick Reconnect */}
         {recentRooms.length > 0 && (
-          <div
-            style={{
-              marginTop: "24px",
-              paddingTop: "20px",
-              borderTop: "1px solid var(--border-color)",
-            }}
-          >
-            <div
-              style={{
-                display: "flex",
-                alignItems: "center",
-                gap: "6px",
-                fontSize: "12px",
-                color: "var(--text-dim)",
-                fontWeight: 600,
-                marginBottom: "10px",
-                textTransform: "uppercase",
-                letterSpacing: "0.05em",
-              }}
-            >
+          <div className="recent-rooms-section">
+            <div className="recent-rooms-header">
               <History size={13} />
               <span>Recent Rooms</span>
             </div>
-            <div style={{ display: "flex", flexWrap: "wrap", gap: "8px" }}>
+            <div className="recent-rooms-list">
               {recentRooms.map((r) => (
                 <button
                   key={r.roomId}
@@ -466,15 +314,10 @@ export default function Home({ onJoinRoom, initialRoomId = "" }) {
                     setJoinRoomCode(r.roomId);
                     setTab("join");
                   }}
-                  className="btn-secondary"
-                  style={{
-                    padding: "6px 12px",
-                    fontSize: "12px",
-                    borderRadius: "var(--radius-full)",
-                  }}
+                  className="btn-secondary recent-room-chip"
                 >
-                  <span style={{ color: "#c084fc", fontWeight: 700 }}>{r.roomId}</span>
-                  <span style={{ color: "var(--text-muted)" }}>• {r.title}</span>
+                  <span className="recent-room-id">{r.roomId}</span>
+                  <span className="recent-room-title">• {r.title}</span>
                 </button>
               ))}
             </div>
@@ -483,76 +326,33 @@ export default function Home({ onJoinRoom, initialRoomId = "" }) {
       </div>
 
       {/* Feature Highlights Grid */}
-      <div
-        style={{
-          display: "grid",
-          gridTemplateColumns: "repeat(auto-fit, minmax(240px, 1fr))",
-          gap: "20px",
-          marginTop: "60px",
-        }}
-      >
-        <div className="glass-panel" style={{ padding: "20px" }}>
-          <div
-            style={{
-              width: "36px",
-              height: "36px",
-              borderRadius: "8px",
-              background: "rgba(139, 92, 246, 0.15)",
-              color: "#c084fc",
-              display: "flex",
-              alignItems: "center",
-              justifyContent: "center",
-              marginBottom: "12px",
-            }}
-          >
+      <div className="feature-highlights-grid">
+        <div className="glass-panel feature-card">
+          <div className="feature-icon-box feature-icon-purple">
             <Zap size={20} />
           </div>
-          <h4 style={{ fontSize: "16px", marginBottom: "6px" }}>Sub-second Sync</h4>
-          <p style={{ fontSize: "13px", color: "var(--text-muted)", lineHeight: 1.5 }}>
+          <h4 className="feature-title">Sub-second Sync</h4>
+          <p className="feature-desc">
             Automated drift compensation keeps everyone on the exact same frame across all devices.
           </p>
         </div>
 
-        <div className="glass-panel" style={{ padding: "20px" }}>
-          <div
-            style={{
-              width: "36px",
-              height: "36px",
-              borderRadius: "8px",
-              background: "rgba(245, 158, 11, 0.15)",
-              color: "#fbbf24",
-              display: "flex",
-              alignItems: "center",
-              justifyContent: "center",
-              marginBottom: "12px",
-            }}
-          >
+        <div className="glass-panel feature-card">
+          <div className="feature-icon-box feature-icon-amber">
             <Shield size={20} />
           </div>
-          <h4 style={{ fontSize: "16px", marginBottom: "6px" }}>Role-Based Access</h4>
-          <p style={{ fontSize: "13px", color: "var(--text-muted)", lineHeight: 1.5 }}>
+          <h4 className="feature-title">Role-Based Access</h4>
+          <p className="feature-desc">
             Hosts manage the room, promote Moderators, and control who can play, pause, or switch videos.
           </p>
         </div>
 
-        <div className="glass-panel" style={{ padding: "20px" }}>
-          <div
-            style={{
-              width: "36px",
-              height: "36px",
-              borderRadius: "8px",
-              background: "rgba(236, 72, 153, 0.15)",
-              color: "#f472b6",
-              display: "flex",
-              alignItems: "center",
-              justifyContent: "center",
-              marginBottom: "12px",
-            }}
-          >
+        <div className="glass-panel feature-card">
+          <div className="feature-icon-box feature-icon-pink">
             <Sparkles size={20} />
           </div>
-          <h4 style={{ fontSize: "16px", marginBottom: "6px" }}>Live Reactions & Chat</h4>
-          <p style={{ fontSize: "13px", color: "var(--text-muted)", lineHeight: 1.5 }}>
+          <h4 className="feature-title">Live Reactions & Chat</h4>
+          <p className="feature-desc">
             Send instant floating emoji bursts on funny or epic moments, with real-time text chat.
           </p>
         </div>

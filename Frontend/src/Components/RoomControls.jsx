@@ -88,48 +88,31 @@ export default function RoomControls({
     <div className="glass-panel room-controls-card">
       {/* 1. Direct YouTube Link Input Bar (Always accessible for Host/Mod) */}
       {canControl && (
-        <div style={{ marginBottom: "16px" }}>
+        <div className="controls-direct-url-section">
           <form onSubmit={handleDirectVideoSubmit}>
             <div className="controls-input-row">
               <div className="controls-url-wrapper">
                 <input
                   type="text"
-                  className="input-control"
+                  className="input-control controls-url-input"
                   placeholder="Paste YouTube URL or Video ID (e.g. https://www.youtube.com/watch?v=...)"
                   value={videoUrlInput}
                   onChange={(e) => {
                     setVideoUrlInput(e.target.value);
                     if (urlError) setUrlError("");
                   }}
-                  style={{
-                    padding: "10px 14px",
-                    paddingLeft: "36px",
-                    fontSize: "13px",
-                    background: "rgba(0, 0, 0, 0.4)",
-                  }}
                 />
                 <Film
                   size={15}
                   color="#c084fc"
-                  style={{
-                    position: "absolute",
-                    left: "12px",
-                    top: "50%",
-                    transform: "translateY(-50%)",
-                    pointerEvents: "none",
-                  }}
+                  className="controls-url-icon"
                 />
               </div>
 
               <div className="controls-action-btns">
                 <button
                   type="submit"
-                  className="btn btn-primary"
-                  style={{
-                    padding: "10px 18px",
-                    fontSize: "13px",
-                    whiteSpace: "nowrap",
-                  }}
+                  className="btn btn-primary controls-submit-btn"
                 >
                   <span>Load Video</span>
                   <ArrowRight size={14} />
@@ -138,12 +121,7 @@ export default function RoomControls({
                 <button
                   type="button"
                   onClick={() => setShowPresets(!showPresets)}
-                  className="btn btn-secondary"
-                  style={{
-                    padding: "10px 14px",
-                    fontSize: "13px",
-                    whiteSpace: "nowrap",
-                  }}
+                  className="btn btn-secondary controls-preset-toggle-btn"
                   title="Browse quick video presets"
                 >
                   <Sparkles size={14} color="#fbbf24" />
@@ -154,52 +132,24 @@ export default function RoomControls({
           </form>
 
           {urlError && (
-            <p style={{ fontSize: "12px", color: "var(--accent-red)", marginTop: "6px" }}>
+            <p className="controls-url-error">
               ⚠️ {urlError}
             </p>
           )}
 
           {/* Quick Preset Dropdown */}
           {showPresets && (
-            <div
-              style={{
-                marginTop: "10px",
-                padding: "12px",
-                background: "rgba(10, 15, 26, 0.95)",
-                border: "1px solid var(--border-color)",
-                borderRadius: "var(--radius-sm)",
-                display: "grid",
-                gridTemplateColumns: "repeat(auto-fit, minmax(200px, 1fr))",
-                gap: "8px",
-              }}
-            >
+            <div className="presets-dropdown-grid">
               {PRESET_VIDEOS.map((preset) => (
                 <button
                   key={preset.id}
                   onClick={() => handleSelectPreset(preset.id)}
-                  style={{
-                    padding: "8px 10px",
-                    background: "rgba(255, 255, 255, 0.04)",
-                    border: "1px solid var(--border-color)",
-                    borderRadius: "6px",
-                    color: "var(--text-main)",
-                    cursor: "pointer",
-                    textAlign: "left",
-                    transition: "all 0.15s ease",
-                  }}
-                  onMouseEnter={(e) => {
-                    e.currentTarget.style.background = "rgba(139, 92, 246, 0.2)";
-                    e.currentTarget.style.borderColor = "rgba(139, 92, 246, 0.4)";
-                  }}
-                  onMouseLeave={(e) => {
-                    e.currentTarget.style.background = "rgba(255, 255, 255, 0.04)";
-                    e.currentTarget.style.borderColor = "var(--border-color)";
-                  }}
+                  className="preset-card-item"
                 >
-                  <p style={{ fontSize: "12px", fontWeight: 600, margin: 0 }}>
+                  <p className="preset-card-title">
                     {preset.title}
                   </p>
-                  <span style={{ fontSize: "10px", color: "var(--text-muted)" }}>
+                  <span className="preset-card-category">
                     {preset.category}
                   </span>
                 </button>
@@ -210,12 +160,12 @@ export default function RoomControls({
       )}
 
       {/* 2. Progress Scrubber */}
-      <div style={{ display: "flex", alignItems: "center", gap: "12px", marginBottom: "14px" }}>
-        <span style={{ fontSize: "12px", color: "var(--text-muted)", minWidth: "42px", fontFamily: "monospace" }}>
+      <div className="scrubber-container">
+        <span className="scrubber-time">
           {formatDuration(currentTime)}
         </span>
 
-        <div style={{ flex: 1, position: "relative", display: "flex", alignItems: "center" }}>
+        <div className="scrubber-track-wrapper">
           <input
             type="range"
             min="0"
@@ -224,20 +174,15 @@ export default function RoomControls({
             value={currentTime || 0}
             onChange={handleSeekChange}
             disabled={!canControl}
+            className="scrubber-input-range"
             style={{
-              width: "100%",
               cursor: canControl ? "pointer" : "default",
-              accentColor: "var(--primary)",
-              height: "6px",
-              borderRadius: "3px",
               background: `linear-gradient(to right, #8b5cf6 0%, #8b5cf6 ${progressPercent}%, rgba(255,255,255,0.1) ${progressPercent}%, rgba(255,255,255,0.1) 100%)`,
-              appearance: "none",
-              outline: "none",
             }}
           />
         </div>
 
-        <span style={{ fontSize: "12px", color: "var(--text-dim)", minWidth: "42px", fontFamily: "monospace" }}>
+        <span className="scrubber-time scrubber-time-dim">
           {formatDuration(duration)}
         </span>
       </div>
@@ -309,12 +254,8 @@ export default function RoomControls({
                 {isParticipantLocallyPaused ? (
                   <button
                     onClick={onParticipantPlay}
-                    className="btn btn-primary control-btn control-play-btn"
+                    className="btn btn-primary control-btn control-play-btn participant-live-play-btn"
                     title="Resume and automatically catch up to host's live video"
-                    style={{
-                      background: "linear-gradient(135deg, #8b5cf6 0%, #ec4899 100%)",
-                      boxShadow: "0 0 16px rgba(139, 92, 246, 0.4)",
-                    }}
                   >
                     <Play size={16} fill="#ffffff" />
                     <span>Play (Live Sync)</span>
@@ -336,12 +277,7 @@ export default function RoomControls({
                   <button
                     type="button"
                     onClick={onCatchUpLive}
-                    className="btn btn-secondary control-btn"
-                    style={{
-                      borderColor: "rgba(245, 158, 11, 0.4)",
-                      background: "rgba(245, 158, 11, 0.12)",
-                      color: "#fbbf24",
-                    }}
+                    className="btn btn-secondary control-btn participant-catchup-btn"
                     title={`Catch up ${Math.round(timeDifference)}s to host's live position`}
                   >
                     <Radio size={13} color="#fbbf24" />
@@ -350,8 +286,8 @@ export default function RoomControls({
                 )}
 
                 {!isParticipantLocallyPaused && !isBehindHost && isPlaying && (
-                  <div className="playback-locked-badge" style={{ color: "#86efac", borderColor: "rgba(34, 197, 94, 0.3)" }}>
-                    <div style={{ width: "6px", height: "6px", borderRadius: "50%", background: "#22c55e" }} />
+                  <div className="playback-locked-badge">
+                    <div className="pulse-dot" />
                     <span>Live with Host</span>
                   </div>
                 )}

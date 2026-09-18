@@ -23,15 +23,7 @@ export default function EmojiReactions({ reactions = [] }) {
   }, [reactions]);
 
   return (
-    <div
-      style={{
-        position: "absolute",
-        inset: 0,
-        overflow: "hidden",
-        pointerEvents: "none",
-        zIndex: 30,
-      }}
-    >
+    <div className="emoji-reactions-container">
       {activeReactions.map((item) => (
         <div
           key={item.id}
